@@ -431,6 +431,9 @@
                     letterRendering: true
                 });
                 
+                // આ લાઈન મારાથી અગાઉના કોડમાં રહી ગઈ હતી!
+                let imgData = canvas.toDataURL('image/jpeg', 1.0);
+                
                 let pdfHeight = (canvas.height * pdfWidth) / canvas.width; 
                 let orientation = pdfWidth > pdfHeight ? 'l' : 'p';
                 
@@ -455,6 +458,3 @@
             btn.innerText = originalText;
             btn.disabled = false;
         }
-    </script>
-</body>
-</html>
