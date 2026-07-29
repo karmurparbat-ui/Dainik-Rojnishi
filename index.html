@@ -2,14 +2,13 @@
 <html lang="gu">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>દૈનિક રોજનીશી જનરેટર</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rasa:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.|js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <style>
@@ -24,7 +23,7 @@
 
         body {
             font-family: 'Rasa', 'Nirmala UI', 'Shruti', serif;
-            background-color: var(--bg-color);
+            background-color: transparent;
             margin: 0;
             padding: 10px;
             color: var(--text-color);
@@ -52,54 +51,41 @@
         .btn-pdf { background-color: #d32f2f; }
         .btn-pdf:hover { background-color: #9a0007; }
         
-        .loading { text-align: center; font-size: 18px; color: var(--primary-color); display: none; font-weight: bold; margin: 20px 0; }
+        .loading { text-align: center; font-size: 20px; color: var(--primary-color); display: none; font-weight: bold; margin: 20px 0; }
 
-        .preview-wrapper { 
-            width: 100%; 
-            overflow-x: auto; 
-            background: #e0e0e0;
-            padding: 20px 10px;
-            border-radius: 8px;
-            min-height: 200px;
-        }
+        .preview-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 20px; }
+        .preview-scale { transform: scale(0.35); transform-origin: top center; margin-bottom: -60%; }
 
-        #multiPageContainer {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            align-items: center;
-            width: 100%;
-        }
-
-        /* પ્રિવ્યુ માટે સ્કેલિંગ */
-        .preview-scale .print-area {
-            transform: scale(0.35); /* પાછું પહેલા જેવું જ સ્કેલ કરી દીધું છે */
-            transform-origin: top center;
-            margin-bottom: -2000px; /* સ્કેલિંગ મુજબની જગ્યા એડજસ્ટ કરી છે */
-        }
+        #multiPageContainer { display: flex; flex-direction: column; gap: 40px; align-items: center; width: max-content; margin-left: auto; margin-right: auto; }
 
         .print-area {
             width: 3200px; 
+            height: max-content; 
             background: white;
             padding: 40px 15px 30px 15px; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             position: relative;
             display: flex;
             flex-direction: column;
+            justify-content: flex-start; 
             border: 2px solid #ddd;
+            text-rendering: geometricPrecision;
+            -webkit-font-smoothing: antialiased;
         }
 
         .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 0 25px; }
-        .logo-section { width: 140px; }
+        .logo-section { width: 140px; display: flex; justify-content: flex-start; }
         .round-logo {
             width: 120px; height: 120px; background-color: var(--primary-color);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
             border: 4px solid white; outline: 3px solid var(--primary-color);
         }
+        .logo-spacer { width: 140px; }
         
         .school-header { text-align: center; flex-grow: 1; }
-        .school-header h1 { margin: 0; font-size: 75px; color: var(--primary-color); font-weight: 700; }
-        .address-dise { font-size: 38px; font-weight: 700; color: #444; margin: 10px 0; }
+        .school-header h1 { margin: 0; font-size: 75px; color: var(--primary-color); font-weight: 700; letter-spacing: 1px; }
+        .address-dise { font-size: 38px; font-weight: 700; color: #444; margin: 10px 0 0 0; }
+        .address-dise span { color: var(--primary-color); font-weight: bold; }
         
         .info-row {
             display: flex; 
@@ -109,12 +95,37 @@
             margin-bottom: 25px; 
             border-bottom: 5px solid var(--primary-color); 
             padding-bottom: 12px;
+            padding-left: 25px;
+            padding-right: 25px;
             color: var(--primary-color);
         }
+        .info-row span { color: #222; }
 
+        .table-container { margin-bottom: 10px; padding: 0 5px; }
         table { width: 100%; border-collapse: collapse; font-size: 36px; table-layout: fixed; }
-        th, td { border: 3px solid #444; padding: 16px 12px; vertical-align: top; font-weight: 700; word-break: break-word; }
-        th { background-color: var(--primary-color); color: white; text-align: center; font-size: 38px; }
+        
+        th:nth-child(1), td:nth-child(1) { width: 3%; text-align: center; } 
+        th:nth-child(2), td:nth-child(2) { width: 4.5%; text-align: center; } 
+        th:nth-child(3), td:nth-child(3) { width: 6.5%; text-align: center; } 
+        th:nth-child(4), td:nth-child(4) { width: 13%; } 
+        th:nth-child(5), td:nth-child(5) { width: 8%; }  
+        th:nth-child(6), td:nth-child(6) { width: 13%; } 
+        th:nth-child(7), td:nth-child(7) { width: 26%; } 
+        th:nth-child(8), td:nth-child(8) { width: 13%; } 
+        th:nth-child(9), td:nth-child(9) { width: 13%; } 
+        
+        th, td { 
+            border: 3px solid #444; 
+            padding: 16px 12px; 
+            vertical-align: top; 
+            line-height: 1.35; 
+            font-weight: 700; 
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap; 
+            letter-spacing: 0.3px;
+        }
+        th { background-color: var(--primary-color); color: white; text-align: center; font-size: 38px; padding: 22px 10px; }
 
         .sub-gujarati { background-color: #E1F5FE !important; }
         .sub-maths { background-color: #E8F5E9 !important; }
@@ -124,9 +135,20 @@
         .sub-sanskrit { background-color: #FCE4EC !important; }
         .sub-other { background-color: #F5F5F5 !important; }
 
-        .signature-row { display: flex; justify-content: space-between; font-size: 45px; font-weight: 700; margin-top: 30px; }
-        .empty-message { text-align: center; font-size: 18px; color: red; margin: 20px 0; font-weight: 700; }
+        .signature-row { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 45px; 
+            font-weight: 700; 
+            padding: 20px 25px 10px 25px; 
+            margin-top: 15px; 
+        }
+        
+        .empty-message { text-align: center; font-size: 20px; color: red; margin: 40px 0; font-weight: 700; }
         .hidden { display: none !important; }
+
+        @media (max-width: 900px) { .preview-scale { transform: scale(0.25); margin-bottom: -70%; } }
+        @media (max-width: 600px) { .preview-scale { transform: scale(0.18); margin-bottom: -80%; } .action-btns { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -159,21 +181,32 @@
 
     <div class="preview-wrapper" id="previewWrapper">
         <div id="multiPageContainer" class="preview-scale">
-            <!-- ડેટા અહીં દેખાશે -->
+            <!-- Dynamic Pages Will Be Inserted Here -->
         </div>
     </div>
 
     <script>
         window.jsPDF = window.jspdf.jsPDF;
         let currentMode = 'single';
-        const appConfig = { schoolName: 'શ્રી કોરાડા વાડી પ્રાથમિક શાળા', teacherName: 'પરબતભાઈ કરમુર' };
+        
+        const appConfig = {
+            schoolName: 'શ્રી કોરાડા વાડી પ્રાથમિક શાળા',
+            teacherName: 'પરબતભાઈ કરમુર'
+        };
 
         function setMode(mode) {
             currentMode = mode;
-            document.getElementById('tabSingle').classList.toggle('active', mode === 'single');
-            document.getElementById('tabRange').classList.toggle('active', mode === 'range');
-            document.getElementById('endDateWrapper').classList.toggle('hidden', mode === 'single');
-            document.getElementById('lblStartDate').innerText = mode === 'single' ? "તારીખ પસંદ કરો:" : "પ્રારંભ તારીખ:";
+            if(mode === 'single') {
+                document.getElementById('tabSingle').classList.add('active');
+                document.getElementById('tabRange').classList.remove('active');
+                document.getElementById('endDateWrapper').classList.add('hidden');
+                document.getElementById('lblStartDate').innerText = "તારીખ પસંદ કરો:";
+            } else {
+                document.getElementById('tabRange').classList.add('active');
+                document.getElementById('tabSingle').classList.remove('active');
+                document.getElementById('endDateWrapper').classList.remove('hidden');
+                document.getElementById('lblStartDate').innerText = "પ્રારંભ તારીખ:";
+            }
         }
 
         function getSubjectColorClass(subject) {
@@ -188,7 +221,6 @@
         }
 
         function escapeHTML(str) {
-            if (!str) return "";
             return str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag));
         }
 
@@ -200,6 +232,10 @@
                 let parts = str.split('-');
                 return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
             }
+            if (str.includes('/')) {
+                let parts = str.split('/');
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
             return "";
         }
 
@@ -209,85 +245,209 @@
             return `${parts[2]}-${parts[1]}-${parts[0]}`;
         }
 
+        async function getRojnishiData(startDate, endDate) {
+            try {
+                const response = await fetch('Rojnishi_Final.json');
+                
+                if (!response.ok) {
+                    throw new Error("ડેટા ફાઇલ (JSON) મળી નથી.");
+                }
+
+                const data = await response.json(); 
+                const requiredColumns = ["તારીખ", "વાર", "તાસ", "ધોરણ", "વિષય", "એકમ", "અધ્યયન નિષ્પતિ", "શૈક્ષણિક મુદ્દા", "શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ", "સ્વ અધ્યયન", "મૂલ્યાંકન"];
+                let groupedData = {};
+
+                for (let i = 0; i < data.length; i++) {
+                    let row = data[i];
+                    let rawDate = row["તારીખ"]; 
+                    
+                    if (rawDate === undefined || rawDate === "") continue;
+                    
+                    let rowDateStd = getStandardDate(rawDate); 
+
+                    if (rowDateStd >= startDate && rowDateStd <= endDate) {
+                        let indianDate = getIndianDate(rowDateStd);
+                        
+                        let rowObj = {};
+                        requiredColumns.forEach(col => {
+                            let val = (row[col] !== undefined && row[col] !== "") ? row[col].toString() : "—";
+                            rowObj[col] = val;
+                        });
+
+                        if(!groupedData[indianDate]) {
+                            groupedData[indianDate] = [];
+                        }
+                        groupedData[indianDate].push(rowObj);
+                    }
+                }
+
+                return { success: true, data: groupedData };
+
+            } catch (error) {
+                console.error(error);
+                return { success: false, error: error.message };
+            }
+        }
+
         async function fetchData() {
             let start = document.getElementById('startDate').value;
             let end = document.getElementById('endDate').value;
-            if(!start) { alert("તારીખ પસંદ કરો."); return; }
-            if(currentMode === 'single') end = start;
-            if(start > end) { alert("તારીખ ખોટી છે."); return; }
+
+            if(!start) { alert("કૃપા કરીને તારીખ પસંદ કરો."); return; }
+            if(currentMode === 'single') end = start; 
+            else if(!end) { alert("કૃપા કરીને અંતિમ તારીખ પસંદ કરો."); return; }
+            
+            if(start > end) { alert("પ્રારંભ તારીખ અંતિમ તારીખ કરતા મોટી ન હોઈ શકે."); return; }
 
             document.getElementById('loading').style.display = 'block';
             document.getElementById('emptyMessage').classList.add('hidden');
             document.getElementById('multiPageContainer').innerHTML = "";
             document.getElementById('actionBtns').classList.add('hidden');
 
-            try {
-                const response = await fetch('Rojnishi_Final.json');
-                const data = await response.json();
-                let found = false;
-                let groupedData = {};
-
-                data.forEach(row => {
-                    let rowDateStd = getStandardDate(row["તારીખ"]);
-                    if (rowDateStd >= start && rowDateStd <= end) {
-                        let indDate = getIndianDate(rowDateStd);
-                        if(!groupedData[indDate]) groupedData[indDate] = [];
-                        groupedData[indDate].push(row);
-                        found = true;
-                    }
-                });
-
-                if (!found) {
-                    document.getElementById('emptyMessage').classList.remove('hidden');
-                } else {
-                    renderPages(groupedData);
-                }
-            } catch (e) {
-                alert("ડેટા લોડ કરવામાં ભૂલ આવી.");
-            }
-            document.getElementById('loading').style.display = 'none';
+            let response = await getRojnishiData(start, end);
+            renderMultiplePages(response);
         }
 
-        function renderPages(groupedData) {
+        function renderMultiplePages(response) {
+            document.getElementById('loading').style.display = 'none';
+            if (!response.success) { alert("Error: " + response.error); return; }
+
+            const groupedData = response.data;
+            const dates = Object.keys(groupedData);
+
+            if (dates.length === 0) {
+                document.getElementById('emptyMessage').classList.remove('hidden');
+                return;
+            }
+
             const container = document.getElementById('multiPageContainer');
-            Object.keys(groupedData).forEach(date => {
-                const rows = groupedData[date];
-                let html = `<div class="print-area">
+
+            dates.forEach(dateStr => {
+                const rows = groupedData[dateStr];
+                const dayStr = rows.length > 0 ? escapeHTML(rows[0]["વાર"]) : "";
+
+                let pageHTML = `
+                <div class="print-area">
                     <div class="header-container">
-                        <div class="logo-section"><div class="round-logo"><svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></div></div>
-                        <div class="school-header"><h1>${appConfig.schoolName}</h1><div class="address-dise">તા. દ્વારકા, જિ. દેવભૂમિ દ્વારકા | ડાયસ કોડ: 2429201802</div></div>
+                        <div class="logo-section">
+                            <div class="round-logo">
+                                <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="school-header">
+                            <h1>${appConfig.schoolName}</h1>
+                            <div class="address-dise">તા. દ્વારકા, જિ. દેવભૂમિ દ્વારકા <span>&nbsp;|&nbsp;</span> ડાયસ કોડ: 2429201802</div>
+                        </div>
+                        <div class="logo-spacer"></div>
                     </div>
-                    <div class="info-row"><div>શિક્ષક: ${appConfig.teacherName}</div><div>તારીખ: ${date}</div><div>વાર: ${rows[0]["વાર"]}</div></div>
-                    <table><thead><tr><th>તાસ</th><th>ધોરણ</th><th>વિષય</th><th>એકમ</th><th>અધ્યયન નિષ્પતિ</th><th>મુદ્દા</th><th>પ્રવૃત્તિ</th><th>સ્વ અધ્યયન</th><th>મૂલ્યાંકન</th></tr></thead><tbody>`;
-                
+                    
+                    <div class="info-row">
+                        <div>શિક્ષકનું નામ: <span>${appConfig.teacherName}</span></div>
+                        <div>તારીખ: <span>${dateStr}</span></div>
+                        <div>વાર: <span>${dayStr}</span></div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>તાસ</th><th>ધોરણ</th><th>વિષય</th><th>એકમ</th><th>અધ્યયન નિષ્પતિ</th>
+                                    <th>શૈક્ષણિક મુદ્દા</th><th>શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ</th><th>સ્વ અધ્યયન</th><th>મૂલ્યાંકન</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
                 rows.forEach(row => {
-                    let cls = getSubjectColorClass(row["વિષય"]);
-                    html += `<tr><td class="${cls}">${row["તાસ"]}</td><td class="${cls}">${row["ધોરણ"]}</td><td class="${cls}">${row["વિષય"]}</td><td class="${cls}">${row["એકમ"]}</td><td class="${cls}">${row["અધ્યયન નિષ્પતિ"]}</td><td class="${cls}">${row["શૈક્ષણિક મુદ્દા"]}</td><td class="${cls}">${row["શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ"]}</td><td class="${cls}">${row["સ્વ અધ્યયન"]}</td><td class="${cls}">${row["મૂલ્યાંકન"]}</td></tr>`;
+                    let subject = escapeHTML(row["વિષય"]);
+                    let colorClass = getSubjectColorClass(subject);
+                    pageHTML += `
+                        <tr>
+                            <td class="${colorClass}">${escapeHTML(row["તાસ"])}</td>
+                            <td class="${colorClass}">${escapeHTML(row["ધોરણ"])}</td>
+                            <td class="${colorClass}"><strong>${subject}</strong></td>
+                            <td class="${colorClass}">${escapeHTML(row["એકમ"])}</td>
+                            <td class="${colorClass}">${escapeHTML(row["અધ્યયન નિષ્પતિ"])}</td>
+                            <td class="${colorClass}">${escapeHTML(row["શૈક્ષણિક મુદ્દા"])}</td>
+                            <td class="${colorClass}">${escapeHTML(row["શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ"])}</td>
+                            <td class="${colorClass}">${escapeHTML(row["સ્વ અધ્યયન"])}</td>
+                            <td class="${colorClass}">${escapeHTML(row["મૂલ્યાંકન"])}</td>
+                        </tr>
+                    `;
                 });
-                html += `</tbody></table><div class="signature-row"><div>શિક્ષકની સહી: __________________</div><div>મુખ્ય શિક્ષકની સહી: __________________</div></div></div>`;
-                container.insertAdjacentHTML('beforeend', html);
+
+                pageHTML += `
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="signature-row">
+                        <div>શિક્ષકની સહી: __________________</div>
+                        <div>મુખ્ય શિક્ષકની સહી: __________________</div>
+                    </div>
+                </div>`;
+                
+                container.insertAdjacentHTML('beforeend', pageHTML);
             });
+
             document.getElementById('actionBtns').classList.remove('hidden');
         }
 
         async function downloadPDF() {
             const btn = document.getElementById('btnPdf');
-            btn.innerText = "PDF બની રહી છે...";
+            const originalText = btn.innerText;
+            btn.innerText = "PDF બની રહી છે... કૃપા કરીને રાહ જુઓ";
             btn.disabled = true;
+
+            await document.fonts.ready;
+
+            const wrapper = document.getElementById('previewWrapper');
             const container = document.getElementById('multiPageContainer');
+            
+            wrapper.style.overflow = 'hidden'; 
             container.classList.remove('preview-scale');
+
             const pages = document.querySelectorAll('.print-area');
-            let pdf = new jsPDF('l', 'mm', 'a4');
+            const pdfWidth = 297; 
+            let pdf = null;
 
             for (let i = 0; i < pages.length; i++) {
-                const canvas = await html2canvas(pages[i], { scale: 1 });
-                const imgData = canvas.toDataURL('image/jpeg', 0.8);
-                if (i > 0) pdf.addPage();
-                pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+                let pageElement = pages[i];
+                
+                let canvas = await html2canvas(pageElement, { 
+                    scale: 1.5,
+                    useCORS: true, 
+                    logging: false,
+                    backgroundColor: "#ffffff",
+                    letterRendering: true
+                });
+                
+                let imgData = canvas.toDataURL('image/jpeg', 1.0);
+                
+                let pdfHeight = (canvas.height * pdfWidth) / canvas.width; 
+                let orientation = pdfWidth > pdfHeight ? 'l' : 'p';
+                
+                if (i === 0) {
+                    pdf = new jsPDF(orientation, 'mm', [pdfWidth, pdfHeight]);
+                } else {
+                    pdf.addPage([pdfWidth, pdfHeight], orientation);
+                }
+                
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
             }
-            pdf.save("Dainik_Rojnishi.pdf");
+
             container.classList.add('preview-scale');
-            btn.innerText = "PDF ડાઉનલોડ કરો";
+            wrapper.style.overflowX = 'auto';
+
+            let fileName = currentMode === 'single' 
+                ? `Rojnishi_${document.getElementById('startDate').value}.pdf` 
+                : `Rojnishi_${document.getElementById('startDate').value}_To_${document.getElementById('endDate').value}.pdf`;
+
+            pdf.save(fileName);
+            
+            btn.innerText = originalText;
             btn.disabled = false;
         }
     </script>
