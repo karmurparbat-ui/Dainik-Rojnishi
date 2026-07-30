@@ -28,27 +28,25 @@ function getIndianDate(stdDate) {
   return `${parts[2]}-${parts[1]}-${parts[0]}`;
 }
 
-// ગૂગલ શીટમાંથી લાઈવ ડેટા લાવવા અને ફિલ્ટર કરવા માટેનું ફંક્શન
+// JSON ફાઈલમાંથી ડેટા લાવવા અને ફિલ્ટર કરવા માટેનું નવું ફંક્શન
 async function getRojnishiData(startDate, endDate) {
   try {
-    // હવે ડેટા JSON ફાઈલની જગ્યાએ સીધો તમારી Google Sheet ની લાઈવ લિંક પરથી આવશે
-    const sheetURL = "https://script.google.com/macros/s/AKfycbzr76TeHRThPaLJRG6_nZL_llZb_iGHfDFxCxAoSl8/dev";
-    const response = await fetch(sheetURL);
+    // ગુગલ શીટની જગ્યાએ હવે સીધી જ આપણી JSON ફાઇલ લાવીશું
+    const response = await fetch('Rojnishi_Final.json');
     
     if (!response.ok) {
-      throw new Error("ગૂગલ શીટમાંથી ડેટા મળી રહ્યો નથી. લિંક અથવા ઇન્ટરનેટ કનેક્શન ચેક કરો.");
+      throw new Error("ડેટા ફાઇલ (JSON) મળી નથી. ફાઇલનું નામ સાચું છે કે કેમ તે ચેક કરો.");
     }
 
     const data = await response.json(); 
     
-    // છેલ્લા બે નામ સુધારેલા છે
     const requiredColumns = ["તારીખ", "વાર", "તાસ", "ધોરણ", "વિષય", "એકમ", "અધ્યયન નિષ્પતિ", "શૈક્ષણિક મુદ્દા", "શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ", "સ્વ.અધ્યયન/સંદર્ભ સાહિત્ય", "મૂલ્યાંકન/ગૃહકાર્ય"];
     let groupedData = {};
 
-    // ડેટા પર લૂપ ચલાવીને તારીખ મુજબ ચેક કરો
+    // JSON ડેટા પર લૂપ ચલાવીને તારીખ મુજબ ચેક કરો
     for (let i = 0; i < data.length; i++) {
       let row = data[i];
-      let rawDate = row["તારીખ"]; // શીટમાં 'તારીખ' હેડિંગ જ મળશે
+      let rawDate = row["તારીખ"]; // JSON માં સીધું 'તારીખ' હેડિંગ જ મળશે
       
       if (rawDate === undefined || rawDate === "") continue;
       
