@@ -55,6 +55,7 @@
 
         .preview-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 20px; }
         
+        /* અહીંથી પ્રિવ્યુની સાઈઝ મોટી કરેલી છે જેથી ડેટા વંચાય */
         .preview-scale { transform: scale(0.40); transform-origin: top left; margin-bottom: -55%; }
         #multiPageContainer { display: flex; flex-direction: column; gap: 40px; align-items: flex-start; width: 3200px; }
 
@@ -147,6 +148,7 @@
         .empty-message { text-align: center; font-size: 20px; color: red; margin: 40px 0; font-weight: 700; }
         .hidden { display: none !important; }
 
+        /* મોબાઈલ અને લેપટોપની નવી સાઈઝ */
         @media (max-width: 900px) { .preview-scale { transform: scale(0.30); margin-bottom: -65%; } }
         @media (max-width: 600px) { .preview-scale { transform: scale(0.24); margin-bottom: -72%; } .action-btns { flex-direction: column; } }
     </style>
@@ -177,7 +179,6 @@
     </div>
 
     <div id="loading" class="loading">માહિતી શોધાઈ રહી છે... કૃપા કરીને રાહ જુઓ...</div>
-    <!-- એરર બતાવવા માટેનું બોક્સ -->
     <div id="emptyMessage" class="empty-message hidden">પસંદ કરેલ તારીખ(ઓ) માટે કોઈ રોજનીશી ઉપલબ્ધ નથી.</div>
 
     <div class="preview-wrapper" id="previewWrapper">
@@ -197,8 +198,6 @@
 
         function setMode(mode) {
             currentMode = mode;
-            let emptyMsg = document.getElementById('emptyMessage');
-            emptyMsg.classList.add('hidden');
             if(mode === 'single') {
                 document.getElementById('tabSingle').classList.add('active');
                 document.getElementById('tabRange').classList.remove('active');
@@ -224,7 +223,6 @@
         }
 
         function escapeHTML(str) {
-            if(!str) return "—";
             return str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag));
         }
 
@@ -251,12 +249,10 @@
 
         async function getRojnishiData(startDate, endDate) {
             try {
-                // અગત્યનું: અહીં નીચેના ડબલ કોમા (" ") ની વચ્ચે તમારી નવી બનાવેલી લિંક મૂકી દેવી.
-                const sheetURL = "https://script.google.com/macros/s/AKfycbyjXDeRgaDVqMIDvtZaCj9gLxI61pubZ1duC-LRUzVJnuHEOuS6-ei2S_GLkiN6Ab1e5g/exec";
-                const response = await fetch(sheetURL);
+                const response = await fetch('Rojnishi_Final.json');
                 
                 if (!response.ok) {
-                    throw new Error("ગૂગલ શીટની લિંક બરાબર કામ કરી રહી નથી.");
+                    throw new Error("ડેટા ફાઇલ (JSON) મળી નથી.");
                 }
 
                 const data = await response.json(); 
@@ -298,16 +294,15 @@
         async function fetchData() {
             let start = document.getElementById('startDate').value;
             let end = document.getElementById('endDate').value;
-            let emptyMsg = document.getElementById('emptyMessage');
 
-            if(!start) { emptyMsg.innerText = "કૃપા કરીને તારીખ પસંદ કરો."; emptyMsg.classList.remove('hidden'); return; }
+            if(!start) { alert("કૃપા કરીને તારીખ પસંદ કરો."); return; }
             if(currentMode === 'single') end = start; 
-            else if(!end) { emptyMsg.innerText = "કૃપા કરીને અંતિમ તારીખ પસંદ કરો."; emptyMsg.classList.remove('hidden'); return; }
+            else if(!end) { alert("કૃપા કરીને અંતિમ તારીખ પસંદ કરો."); return; }
             
-            if(start > end) { emptyMsg.innerText = "પ્રારંભ તારીખ અંતિમ તારીખ કરતા મોટી ન હોઈ શકે."; emptyMsg.classList.remove('hidden'); return; }
+            if(start > end) { alert("પ્રારંભ તારીખ અંતિમ તારીખ કરતા મોટી ન હોઈ શકે."); return; }
 
             document.getElementById('loading').style.display = 'block';
-            emptyMsg.classList.add('hidden');
+            document.getElementById('emptyMessage').classList.add('hidden');
             document.getElementById('multiPageContainer').innerHTML = "";
             document.getElementById('actionBtns').classList.add('hidden');
 
@@ -317,21 +312,13 @@
 
         function renderMultiplePages(response) {
             document.getElementById('loading').style.display = 'none';
-            let emptyMsg = document.getElementById('emptyMessage');
-            
-            // જો એરર હશે તો પોપ-અપ ની જગ્યાએ સ્ક્રીન પર લાલ અક્ષરે લખાઈને આવશે
-            if (!response.success) { 
-                emptyMsg.innerText = "એરર: ગૂગલ શીટમાંથી ડેટા મળતો નથી. (" + response.error + ")"; 
-                emptyMsg.classList.remove('hidden');
-                return; 
-            }
+            if (!response.success) { alert("Error: " + response.error); return; }
 
             const groupedData = response.data;
             const dates = Object.keys(groupedData);
 
             if (dates.length === 0) {
-                emptyMsg.innerText = "પસંદ કરેલ તારીખ(ઓ) માટે કોઈ રોજનીશી ઉપલબ્ધ નથી.";
-                emptyMsg.classList.remove('hidden');
+                document.getElementById('emptyMessage').classList.remove('hidden');
                 return;
             }
 
@@ -369,6 +356,7 @@
                         <table>
                             <thead>
                                 <tr>
+                                    <!-- અહીં છેલ્લા બે કોલમના હેડિંગ સુધારેલા છે -->
                                     <th>તાસ</th><th>ધોરણ</th><th>વિષય</th><th>એકમ</th><th>અધ્યયન નિષ્પતિ</th>
                                     <th>શૈક્ષણિક મુદ્દા</th><th>શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ</th><th>સ્વ.અધ્યયન/સંદર્ભ સાહિત્ય</th><th>મૂલ્યાંકન/ગૃહકાર્ય</th>
                                 </tr>
