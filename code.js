@@ -32,7 +32,7 @@ function getIndianDate(stdDate) {
 async function getRojnishiData(startDate, endDate) {
   try {
     // હવે ડેટા JSON ફાઈલની જગ્યાએ સીધો તમારી Google Sheet ની લાઈવ લિંક પરથી આવશે
-    const sheetURL = "https://script.google.com/macros/s/AKfycbyjXDeRgaDVqMIDvtZaCj9gLxI61pubZ1duC-LRUzVJnuHEOuS6-ei2S_GLkiN6Ab1e5g/exec";
+    const sheetURL = "https://script.google.com/macros/s/AKfycbzr76TeHRThPaLJRG6_nZL_llZb_iGHfDFxCxAoSl8/dev";
     const response = await fetch(sheetURL);
     
     if (!response.ok) {
