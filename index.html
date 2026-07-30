@@ -54,9 +54,10 @@
         .loading { text-align: center; font-size: 20px; color: var(--primary-color); display: none; font-weight: bold; margin: 20px 0; }
 
         .preview-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 20px; }
-        .preview-scale { transform: scale(0.35); transform-origin: top left; margin-bottom: -60%; }
-        
-         #multiPageContainer { display: flex; flex-direction: column; gap: 40px; align-items: flex-start; width: 3200px; }
+        .preview-scale { transform: scale(0.35); transform-origin: top center; margin-bottom: -60%; }
+
+        #multiPageContainer { display: flex; flex-direction: column; gap: 40px; align-items: center; width: max-content; margin-left: auto; margin-right: auto; }
+
         .print-area {
             width: 3200px; 
             height: max-content; 
@@ -146,8 +147,9 @@
         .empty-message { text-align: center; font-size: 20px; color: red; margin: 40px 0; font-weight: 700; }
         .hidden { display: none !important; }
 
-       @media (max-width: 900px) { .preview-scale { transform: scale(0.25); margin-bottom: -70%; } }
-       @media (max-width: 600px) { .preview-scale { transform: scale(0.11); margin-bottom: -85%; } .action-btns { flex-direction: column; } }
+        @media (max-width: 900px) { .preview-scale { transform: scale(0.25); margin-bottom: -70%; } }
+        @media (max-width: 600px) { .preview-scale { transform: scale(0.18); margin-bottom: -80%; } .action-btns { flex-direction: column; } }
+    </style>
 </head>
 <body>
 
