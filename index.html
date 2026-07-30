@@ -54,9 +54,10 @@
         .loading { text-align: center; font-size: 20px; color: var(--primary-color); display: none; font-weight: bold; margin: 20px 0; }
 
         .preview-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 20px; }
-        .preview-scale { transform: scale(0.35); transform-origin: top center; margin-bottom: -60%; }
-
-        #multiPageContainer { display: flex; flex-direction: column; gap: 40px; align-items: center; width: max-content; margin-left: auto; margin-right: auto; }
+        
+        /* અહી લેપટોપ અને મોબાઈલમાં આખું પેજ બરાબર દેખાય તે માટેનું સેટિંગ સુધારેલ છે */
+        .preview-scale { transform: scale(0.35); transform-origin: top left; margin-bottom: -60%; }
+        #multiPageContainer { display: flex; flex-direction: column; gap: 40px; align-items: flex-start; width: 3200px; }
 
         .print-area {
             width: 3200px; 
@@ -147,8 +148,9 @@
         .empty-message { text-align: center; font-size: 20px; color: red; margin: 40px 0; font-weight: 700; }
         .hidden { display: none !important; }
 
+        /* અહી મોબાઈલ વ્યુ માટે સ્કેલ સુધારેલ છે */
         @media (max-width: 900px) { .preview-scale { transform: scale(0.25); margin-bottom: -70%; } }
-        @media (max-width: 600px) { .preview-scale { transform: scale(0.18); margin-bottom: -80%; } .action-btns { flex-direction: column; } }
+        @media (max-width: 600px) { .preview-scale { transform: scale(0.11); margin-bottom: -85%; } .action-btns { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -254,7 +256,8 @@
                 }
 
                 const data = await response.json(); 
-                const requiredColumns = ["તારીખ", "વાર", "તાસ", "ધોરણ", "વિષય", "એકમ", "અધ્યયન નિષ્પતિ", "શૈક્ષણિક મુદ્દા", "શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ", "સ્વ અધ્યયન", "મૂલ્યાંકન"];
+                // અહીં નીચેની લાઇનમાં છેલ્લા બે નામ JSON પ્રમાણે સુધારેલ છે.
+                const requiredColumns = ["તારીખ", "વાર", "તાસ", "ધોરણ", "વિષય", "એકમ", "અધ્યયન નિષ્પતિ", "શૈક્ષણિક મુદ્દા", "શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ", "સ્વ.અધ્યયન/સંદર્ભ સાહિત્ય", "મૂલ્યાંકન/ગૃહકાર્ય"];
                 let groupedData = {};
 
                 for (let i = 0; i < data.length; i++) {
@@ -364,6 +367,7 @@
                 rows.forEach(row => {
                     let subject = escapeHTML(row["વિષય"]);
                     let colorClass = getSubjectColorClass(subject);
+                    // અહીં નીચેની બે લાઇનમાં ડેટા પ્રિન્ટ કરવાના નામ સુધારેલ છે.
                     pageHTML += `
                         <tr>
                             <td class="${colorClass}">${escapeHTML(row["તાસ"])}</td>
@@ -373,8 +377,8 @@
                             <td class="${colorClass}">${escapeHTML(row["અધ્યયન નિષ્પતિ"])}</td>
                             <td class="${colorClass}">${escapeHTML(row["શૈક્ષણિક મુદ્દા"])}</td>
                             <td class="${colorClass}">${escapeHTML(row["શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ"])}</td>
-                            <td class="${colorClass}">${escapeHTML(row["સ્વ અધ્યયન"])}</td>
-                            <td class="${colorClass}">${escapeHTML(row["મૂલ્યાંકન"])}</td>
+                            <td class="${colorClass}">${escapeHTML(row["સ્વ.અધ્યયન/સંદર્ભ સાહિત્ય"])}</td>
+                            <td class="${colorClass}">${escapeHTML(row["મૂલ્યાંકન/ગૃહકાર્ય"])}</td>
                         </tr>
                     `;
                 });
