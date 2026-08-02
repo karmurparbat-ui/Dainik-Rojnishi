@@ -2,6 +2,7 @@
 <html lang="gu">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>દૈનિક રોજનીશી જનરેટર</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,14 +36,15 @@
             margin: 0 auto 20px auto; border-top: 4px solid var(--primary-color);
         }
 
-        .tab-buttons { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-        .tab-btn { padding: 8px 20px; border: 2px solid var(--primary-color); background: transparent; color: var(--primary-color); border-radius: 20px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .tab-buttons { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; flex-wrap: wrap; }
+        .tab-btn { padding: 8px 16px; border: 2px solid var(--primary-color); background: transparent; color: var(--primary-color); border-radius: 20px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
         .tab-btn.active { background: var(--primary-color); color: white; }
 
+        /* Forms Layout */
         .input-group { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; justify-content: center; }
         .date-field { display: flex; flex-direction: column; text-align: left; }
         .date-field label { font-size: 15px; font-weight: 700; color: #555; margin-bottom: 5px; }
-        input[type="date"] { padding: 10px 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; font-weight: 700; font-family: inherit; outline: none; }
+        input[type="date"], input[type="text"] { padding: 10px 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; font-weight: 700; font-family: inherit; outline: none; }
 
         .action-btns { display: flex; gap: 10px; margin-top: 15px; width: 100%; justify-content: center; border-top: 2px solid #eee; padding-top: 15px; }
         button.main-btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 17px; cursor: pointer; font-weight: 700; transition: 0.3s; font-family: 'Rasa', serif; color: white; }
@@ -50,37 +52,37 @@
         .btn-search:hover { background-color: #0b686c; }
         .btn-pdf { background-color: #d32f2f; }
         .btn-pdf:hover { background-color: #9a0007; }
+        .btn-save { background-color: #2e7d32; width: 100%; margin-top: 15px; font-size: 18px;}
         
         .loading { text-align: center; font-size: 20px; color: var(--primary-color); display: none; font-weight: bold; margin: 20px 0; }
+        .empty-message { text-align: center; font-size: 20px; color: red; margin: 20px 0; font-weight: 700; }
+        .success-message { text-align: center; font-size: 18px; color: green; font-weight: 700; margin-top: 10px; }
+        .hidden { display: none !important; }
 
+        /* Settings (Timetable) Area */
+        #settingsArea { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
+        .day-block { margin-bottom: 20px; background: white; padding: 10px; border-radius: 6px; border-left: 5px solid var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .day-title { font-size: 20px; font-weight: bold; color: var(--primary-color); margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;}
+        .period-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+        .period-row select { padding: 6px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; font-size: 16px; font-weight: bold;}
+        .period-lbl { font-weight: bold; min-width: 60px; }
+        .holiday-box { margin-bottom: 20px; }
+        .holiday-box input { width: 100%; }
+
+        /* Preview & PDF Area */
         .preview-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 20px; }
-        
-        /* અહીંથી પ્રિવ્યુની સાઈઝ મોટી કરેલી છે જેથી ડેટા વંચાય */
         .preview-scale { transform: scale(0.40); transform-origin: top left; margin-bottom: -55%; }
         #multiPageContainer { display: flex; flex-direction: column; gap: 40px; align-items: flex-start; width: 3200px; }
 
         .print-area {
-            width: 3200px; 
-            height: max-content; 
-            background: white;
-            padding: 40px 15px 30px 15px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start; 
-            border: 2px solid #ddd;
-            text-rendering: geometricPrecision;
-            -webkit-font-smoothing: antialiased;
+            width: 3200px; height: max-content; background: white; padding: 40px 15px 30px 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: relative; display: flex;
+            flex-direction: column; justify-content: flex-start; border: 2px solid #ddd;
         }
 
         .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 0 25px; }
         .logo-section { width: 140px; display: flex; justify-content: flex-start; }
-        .round-logo {
-            width: 120px; height: 120px; background-color: var(--primary-color);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            border: 4px solid white; outline: 3px solid var(--primary-color);
-        }
+        .round-logo { width: 120px; height: 120px; background-color: var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 4px solid white; outline: 3px solid var(--primary-color); }
         .logo-spacer { width: 140px; }
         
         .school-header { text-align: center; flex-grow: 1; }
@@ -88,18 +90,7 @@
         .address-dise { font-size: 38px; font-weight: 700; color: #444; margin: 10px 0 0 0; }
         .address-dise span { color: var(--primary-color); font-weight: bold; }
         
-        .info-row {
-            display: flex; 
-            justify-content: space-between; 
-            font-size: 42px;
-            font-weight: 700; 
-            margin-bottom: 25px; 
-            border-bottom: 5px solid var(--primary-color); 
-            padding-bottom: 12px;
-            padding-left: 25px;
-            padding-right: 25px;
-            color: var(--primary-color);
-        }
+        .info-row { display: flex; justify-content: space-between; font-size: 42px; font-weight: 700; margin-bottom: 25px; border-bottom: 5px solid var(--primary-color); padding-bottom: 12px; padding-left: 25px; padding-right: 25px; color: var(--primary-color); }
         .info-row span { color: #222; }
 
         .table-container { margin-bottom: 10px; padding: 0 5px; }
@@ -115,40 +106,22 @@
         th:nth-child(8), td:nth-child(8) { width: 13%; } 
         th:nth-child(9), td:nth-child(9) { width: 13%; } 
         
-        th, td { 
-            border: 3px solid #444; 
-            padding: 16px 12px; 
-            vertical-align: top; 
-            line-height: 1.35; 
-            font-weight: 700; 
-            word-break: break-word;
-            overflow-wrap: break-word;
-            white-space: pre-wrap; 
-            letter-spacing: 0.3px;
-        }
+        /* contenteditable વાળું ખાનું એડિટ કરતી વખતે બેકગ્રાઉન્ડ બદલાય તે માટે */
+        td[contenteditable="true"]:focus { background-color: #fff9c4 !important; outline: 3px dashed var(--primary-color); }
+
+        th, td { border: 3px solid #444; padding: 16px 12px; vertical-align: top; line-height: 1.35; font-weight: 700; word-break: break-word; overflow-wrap: break-word; white-space: pre-wrap; letter-spacing: 0.3px; }
         th { background-color: var(--primary-color); color: white; text-align: center; font-size: 38px; padding: 22px 10px; }
 
-        .sub-gujarati { background-color: #E1F5FE !important; }
-        .sub-maths { background-color: #E8F5E9 !important; }
-        .sub-evs { background-color: #FFF9C4 !important; }
-        .sub-english { background-color: #F3E5F5 !important; }
-        .sub-hindi { background-color: #FFE0B2 !important; }
-        .sub-sanskrit { background-color: #FCE4EC !important; }
-        .sub-other { background-color: #F5F5F5 !important; }
+        .sub-gujarati { background-color: #E1F5FE; }
+        .sub-maths { background-color: #E8F5E9; }
+        .sub-evs { background-color: #FFF9C4; }
+        .sub-english { background-color: #F3E5F5; }
+        .sub-hindi { background-color: #FFE0B2; }
+        .sub-sanskrit { background-color: #FCE4EC; }
+        .sub-other { background-color: #F5F5F5; }
 
-        .signature-row { 
-            display: flex; 
-            justify-content: space-between; 
-            font-size: 45px; 
-            font-weight: 700; 
-            padding: 20px 25px 10px 25px; 
-            margin-top: 15px; 
-        }
-        
-        .empty-message { text-align: center; font-size: 20px; color: red; margin: 40px 0; font-weight: 700; }
-        .hidden { display: none !important; }
+        .signature-row { display: flex; justify-content: space-between; font-size: 45px; font-weight: 700; padding: 20px 25px 10px 25px; margin-top: 15px; }
 
-        /* મોબાઈલ અને લેપટોપની નવી સાઈઝ */
         @media (max-width: 900px) { .preview-scale { transform: scale(0.30); margin-bottom: -65%; } }
         @media (max-width: 600px) { .preview-scale { transform: scale(0.24); margin-bottom: -72%; } .action-btns { flex-direction: column; } }
     </style>
@@ -159,22 +132,37 @@
         <div class="tab-buttons">
             <button class="tab-btn active" id="tabSingle" onclick="setMode('single')">એક દિવસ</button>
             <button class="tab-btn" id="tabRange" onclick="setMode('range')">વધુ દિવસો (રેન્જ)</button>
+            <button class="tab-btn" id="tabSettings" onclick="setMode('settings')">સેટિંગ્સ (ટાઈમટેબલ)</button>
         </div>
 
-        <div class="input-group">
-            <div class="date-field">
-                <label id="lblStartDate">તારીખ પસંદ કરો:</label>
-                <input type="date" id="startDate">
+        <!-- રોજનીશી મેળવવાનું ફોર્મ -->
+        <div id="mainForm">
+            <div class="input-group">
+                <div class="date-field">
+                    <label id="lblStartDate">તારીખ પસંદ કરો:</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="date-field hidden" id="endDateWrapper">
+                    <label>અંતિમ તારીખ:</label>
+                    <input type="date" id="endDate">
+                </div>
+                <button class="main-btn btn-search" onclick="fetchData()">માહિતી મેળવો</button>
             </div>
-            <div class="date-field hidden" id="endDateWrapper">
-                <label>અંતિમ તારીખ:</label>
-                <input type="date" id="endDate">
+            <div class="action-btns hidden" id="actionBtns">
+                <button class="main-btn btn-pdf" id="btnPdf" onclick="downloadPDF()">PDF ડાઉનલોડ કરો</button>
             </div>
-            <button class="main-btn btn-search" onclick="fetchData()">માહિતી મેળવો</button>
         </div>
 
-        <div class="action-btns hidden" id="actionBtns">
-            <button class="main-btn btn-pdf" id="btnPdf" onclick="downloadPDF()">PDF ડાઉનલોડ કરો</button>
+        <!-- સેટિંગ્સ અને ટાઈમટેબલ ફોર્મ (Step 1) -->
+        <div id="settingsArea" class="hidden">
+            <div class="holiday-box">
+                <label style="font-weight: bold; color: #d32f2f;">રજાઓની તારીખ (અલ્પવિરામથી અલગ કરો દા.ત. 15-08-2024, 19-08-2024):</label>
+                <input type="text" id="holidayInput" placeholder="DD-MM-YYYY ફોર્મેટમાં લખો...">
+            </div>
+            <h3 style="text-align:center; color: var(--primary-color);">તમારું સાપ્તાહિક ટાઈમટેબલ ગોઠવો</h3>
+            <div id="timetableBuilder"></div>
+            <button class="main-btn btn-save" onclick="saveSettings()">સેટિંગ્સ સેવ કરો</button>
+            <div id="saveSuccess" class="success-message hidden">ટાઈમટેબલ સફળતાપૂર્વક સેવ થઈ ગયું!</div>
         </div>
     </div>
 
@@ -196,26 +184,115 @@
             teacherName: 'પરબતભાઈ કરમુર'
         };
 
-        function setMode(mode) {
-            currentMode = mode;
-            if(mode === 'single') {
-                document.getElementById('tabSingle').classList.add('active');
-                document.getElementById('tabRange').classList.remove('active');
-                document.getElementById('endDateWrapper').classList.add('hidden');
-                document.getElementById('lblStartDate').innerText = "તારીખ પસંદ કરો:";
-            } else {
-                document.getElementById('tabRange').classList.add('active');
-                document.getElementById('tabSingle').classList.remove('active');
-                document.getElementById('endDateWrapper').classList.remove('hidden');
-                document.getElementById('lblStartDate').innerText = "પ્રારંભ તારીખ:";
+        const daysArr = ["સોમવાર", "મંગળવાર", "બુધવાર", "ગુરુવાર", "શુક્રવાર", "શનિવાર"];
+        const standards = ["-", "૬", "૭", "૮"];
+        const subjects = ["-", "ગુજરાતી", "ગણિત", "વિજ્ઞાન", "સા.વિજ્ઞાન", "અંગ્રેજી", "હિન્દી", "સંસ્કૃત", "ચિત્ર/પીટી"];
+
+        // એપ ચાલુ થાય ત્યારે ટાઈમટેબલનું ફોર્મ જનરેટ કરો
+        function buildTimetableForm() {
+            const builder = document.getElementById('timetableBuilder');
+            let html = "";
+            
+            daysArr.forEach(day => {
+                // શનિવારે ૫ તાસ, બાકીના દિવસોમાં ૮ તાસ
+                let totalPeriods = (day === "શનિવાર") ? 5 : 8;
+                
+                html += `<div class="day-block"><div class="day-title">${day}</div>`;
+                for(let p = 1; p <= totalPeriods; p++) {
+                    html += `<div class="period-row">
+                        <span class="period-lbl">તાસ ${p}:</span>
+                        <select id="std_${day}_${p}">
+                            ${standards.map(s => `<option value="${s}">${s === "-" ? "ધોરણ પસંદ કરો" : "ધો. " + s}</option>`).join('')}
+                        </select>
+                        <select id="sub_${day}_${p}">
+                            ${subjects.map(s => `<option value="${s}">${s === "-" ? "વિષય પસંદ કરો" : s}</option>`).join('')}
+                        </select>
+                    </div>`;
+                }
+                html += `</div>`;
+            });
+            builder.innerHTML = html;
+            loadSettings(); // સેવ કરેલો ડેટા ભરી દો
+        }
+
+        // લોકલ સ્ટોરેજમાંથી ડેટા લાવવા
+        function loadSettings() {
+            let savedTT = localStorage.getItem("myTimetable");
+            let savedHolidays = localStorage.getItem("myHolidays");
+            
+            if(savedHolidays) document.getElementById('holidayInput').value = savedHolidays;
+
+            if(savedTT) {
+                let ttData = JSON.parse(savedTT);
+                daysArr.forEach(day => {
+                    let totalPeriods = (day === "શનિવાર") ? 5 : 8;
+                    for(let p = 1; p <= totalPeriods; p++) {
+                        if(ttData[day] && ttData[day][p]) {
+                            document.getElementById(`std_${day}_${p}`).value = ttData[day][p].std;
+                            document.getElementById(`sub_${day}_${p}`).value = ttData[day][p].sub;
+                        }
+                    }
+                });
             }
         }
 
+        // સેટિંગ્સ સેવ કરવા (મોબાઈલની મેમરીમાં)
+        function saveSettings() {
+            let ttData = {};
+            daysArr.forEach(day => {
+                ttData[day] = {};
+                let totalPeriods = (day === "શનિવાર") ? 5 : 8;
+                for(let p = 1; p <= totalPeriods; p++) {
+                    let std = document.getElementById(`std_${day}_${p}`).value;
+                    let sub = document.getElementById(`sub_${day}_${p}`).value;
+                    ttData[day][p] = { std: std, sub: sub };
+                }
+            });
+            
+            localStorage.setItem("myTimetable", JSON.stringify(ttData));
+            localStorage.setItem("myHolidays", document.getElementById('holidayInput').value);
+            
+            let msg = document.getElementById('saveSuccess');
+            msg.classList.remove('hidden');
+            setTimeout(() => { msg.classList.add('hidden'); }, 3000);
+        }
+
+        // મોડ બદલવા (UI ટૅબ્સ)
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('emptyMessage').classList.add('hidden');
+            document.getElementById('tabSingle').classList.remove('active');
+            document.getElementById('tabRange').classList.remove('active');
+            document.getElementById('tabSettings').classList.remove('active');
+
+            if(mode === 'settings') {
+                document.getElementById('tabSettings').classList.add('active');
+                document.getElementById('mainForm').classList.add('hidden');
+                document.getElementById('settingsArea').classList.remove('hidden');
+                document.getElementById('previewWrapper').classList.add('hidden');
+            } else {
+                document.getElementById('mainForm').classList.remove('hidden');
+                document.getElementById('settingsArea').classList.add('hidden');
+                document.getElementById('previewWrapper').classList.remove('hidden');
+                
+                if(mode === 'single') {
+                    document.getElementById('tabSingle').classList.add('active');
+                    document.getElementById('endDateWrapper').classList.add('hidden');
+                    document.getElementById('lblStartDate').innerText = "તારીખ પસંદ કરો:";
+                } else {
+                    document.getElementById('tabRange').classList.add('active');
+                    document.getElementById('endDateWrapper').classList.remove('hidden');
+                    document.getElementById('lblStartDate').innerText = "પ્રારંભ તારીખ:";
+                }
+            }
+        }
+
+        // કલર કોડિંગ
         function getSubjectColorClass(subject) {
             let sub = subject.trim().toLowerCase();
             if (sub.includes('ગુજરાતી')) return 'sub-gujarati';
             if (sub.includes('ગણિત')) return 'sub-maths';
-            if (sub.includes('પર્યાવરણ') || sub.includes('આસપાસ')) return 'sub-evs';
+            if (sub.includes('વિજ્ઞાન')) return 'sub-evs';
             if (sub.includes('અંગ્રેજી') || sub.includes('english')) return 'sub-english';
             if (sub.includes('હિન્દી') || sub.includes('hindi')) return 'sub-hindi';
             if (sub.includes('સંસ્કૃત')) return 'sub-sanskrit';
@@ -223,37 +300,17 @@
         }
 
         function escapeHTML(str) {
+            if(!str) return "—";
             return str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag));
         }
 
-        function getStandardDate(cellValue) {
-            if (!cellValue) return "";
-            let str = cellValue.toString().trim();
-            if (str.includes('-') && str.split('-')[0].length === 4) return str; 
-            if (str.includes('-')) {
-                let parts = str.split('-');
-                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-            }
-            if (str.includes('/')) {
-                let parts = str.split('/');
-                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-            }
-            return "";
-        }
-
-        function getIndianDate(stdDate) {
-            if(!stdDate) return "";
-            let parts = stdDate.split('-');
-            return `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-
+        // [સ્ટેપ ૨ માં અહીંથી ડેટા ફેચિંગનું નવું માસ્ટર લોજિક આવશે. અત્યારે હાલની પ્રિન્ટ સિસ્ટમ ચાલુ રાખી છે]
         async function getRojnishiData(startDate, endDate) {
             try {
-                const response = await fetch('Rojnishi_Final.json');
-                
-                if (!response.ok) {
-                    throw new Error("ડેટા ફાઇલ (JSON) મળી નથી.");
-                }
+                // તમારી વર્તમાન લિંક (સ્ટેપ ૨ માં આપણે આની અંદરનો ડેટાબેઝ બદલીશું)
+                const sheetURL = "https://script.google.com/macros/s/AKfycbyjXDeRgaDVqMIDvtZaCj9gLxI61pubZ1duC-LRUzVJnuHEOuS6-ei2S_GLkiN6Ab1e5g/exec";
+                const response = await fetch(sheetURL);
+                if (!response.ok) throw new Error("ગૂગલ શીટની લિંક કામ કરી રહી નથી.");
 
                 const data = await response.json(); 
                 const requiredColumns = ["તારીખ", "વાર", "તાસ", "ધોરણ", "વિષય", "એકમ", "અધ્યયન નિષ્પતિ", "શૈક્ષણિક મુદ્દા", "શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ", "સ્વ.અધ્યયન/સંદર્ભ સાહિત્ય", "મૂલ્યાંકન/ગૃહકાર્ય"];
@@ -262,31 +319,24 @@
                 for (let i = 0; i < data.length; i++) {
                     let row = data[i];
                     let rawDate = row["તારીખ"]; 
+                    if (!rawDate) continue;
                     
-                    if (rawDate === undefined || rawDate === "") continue;
-                    
-                    let rowDateStd = getStandardDate(rawDate); 
+                    let stdDate = "";
+                    let str = rawDate.toString().trim();
+                    if (str.includes('-') && str.split('-')[0].length === 4) stdDate = str; 
+                    else if (str.includes('-')) { let p = str.split('-'); stdDate = `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`; }
+                    else if (str.includes('/')) { let p = str.split('/'); stdDate = `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`; }
 
-                    if (rowDateStd >= startDate && rowDateStd <= endDate) {
-                        let indianDate = getIndianDate(rowDateStd);
-                        
+                    if (stdDate >= startDate && stdDate <= endDate) {
+                        let indDate = `${stdDate.split('-')[2]}-${stdDate.split('-')[1]}-${stdDate.split('-')[0]}`;
                         let rowObj = {};
-                        requiredColumns.forEach(col => {
-                            let val = (row[col] !== undefined && row[col] !== "") ? row[col].toString() : "—";
-                            rowObj[col] = val;
-                        });
-
-                        if(!groupedData[indianDate]) {
-                            groupedData[indianDate] = [];
-                        }
-                        groupedData[indianDate].push(rowObj);
+                        requiredColumns.forEach(col => { rowObj[col] = (row[col]) ? row[col].toString() : "—"; });
+                        if(!groupedData[indDate]) groupedData[indDate] = [];
+                        groupedData[indDate].push(rowObj);
                     }
                 }
-
                 return { success: true, data: groupedData };
-
             } catch (error) {
-                console.error(error);
                 return { success: false, error: error.message };
             }
         }
@@ -294,15 +344,14 @@
         async function fetchData() {
             let start = document.getElementById('startDate').value;
             let end = document.getElementById('endDate').value;
+            let emptyMsg = document.getElementById('emptyMessage');
 
-            if(!start) { alert("કૃપા કરીને તારીખ પસંદ કરો."); return; }
+            if(!start) { emptyMsg.innerText = "કૃપા કરીને તારીખ પસંદ કરો."; emptyMsg.classList.remove('hidden'); return; }
             if(currentMode === 'single') end = start; 
-            else if(!end) { alert("કૃપા કરીને અંતિમ તારીખ પસંદ કરો."); return; }
+            else if(!end) { emptyMsg.innerText = "કૃપા કરીને અંતિમ તારીખ પસંદ કરો."; emptyMsg.classList.remove('hidden'); return; }
             
-            if(start > end) { alert("પ્રારંભ તારીખ અંતિમ તારીખ કરતા મોટી ન હોઈ શકે."); return; }
-
             document.getElementById('loading').style.display = 'block';
-            document.getElementById('emptyMessage').classList.add('hidden');
+            emptyMsg.classList.add('hidden');
             document.getElementById('multiPageContainer').innerHTML = "";
             document.getElementById('actionBtns').classList.add('hidden');
 
@@ -312,13 +361,20 @@
 
         function renderMultiplePages(response) {
             document.getElementById('loading').style.display = 'none';
-            if (!response.success) { alert("Error: " + response.error); return; }
+            let emptyMsg = document.getElementById('emptyMessage');
+            
+            if (!response.success) { 
+                emptyMsg.innerText = "એરર: ગૂગલ શીટમાંથી ડેટા મળતો નથી. (" + response.error + ")"; 
+                emptyMsg.classList.remove('hidden');
+                return; 
+            }
 
             const groupedData = response.data;
             const dates = Object.keys(groupedData);
 
             if (dates.length === 0) {
-                document.getElementById('emptyMessage').classList.remove('hidden');
+                emptyMsg.innerText = "પસંદ કરેલ તારીખ માટે કોઈ ડેટા નથી.";
+                emptyMsg.classList.remove('hidden');
                 return;
             }
 
@@ -356,7 +412,6 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <!-- અહીં છેલ્લા બે કોલમના હેડિંગ સુધારેલા છે -->
                                     <th>તાસ</th><th>ધોરણ</th><th>વિષય</th><th>એકમ</th><th>અધ્યયન નિષ્પતિ</th>
                                     <th>શૈક્ષણિક મુદ્દા</th><th>શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ</th><th>સ્વ.અધ્યયન/સંદર્ભ સાહિત્ય</th><th>મૂલ્યાંકન/ગૃહકાર્ય</th>
                                 </tr>
@@ -367,17 +422,18 @@
                 rows.forEach(row => {
                     let subject = escapeHTML(row["વિષય"]);
                     let colorClass = getSubjectColorClass(subject);
+                    // સૌથી મોટો જાદુ: contenteditable="true" જેથી શિક્ષકો ડાયરેક્ટ ટાઈપ કરી શકે
                     pageHTML += `
                         <tr>
                             <td class="${colorClass}">${escapeHTML(row["તાસ"])}</td>
                             <td class="${colorClass}">${escapeHTML(row["ધોરણ"])}</td>
                             <td class="${colorClass}"><strong>${subject}</strong></td>
-                            <td class="${colorClass}">${escapeHTML(row["એકમ"])}</td>
-                            <td class="${colorClass}">${escapeHTML(row["અધ્યયન નિષ્પતિ"])}</td>
-                            <td class="${colorClass}">${escapeHTML(row["શૈક્ષણિક મુદ્દા"])}</td>
-                            <td class="${colorClass}">${escapeHTML(row["શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ"])}</td>
-                            <td class="${colorClass}">${escapeHTML(row["સ્વ.અધ્યયન/સંદર્ભ સાહિત્ય"])}</td>
-                            <td class="${colorClass}">${escapeHTML(row["મૂલ્યાંકન/ગૃહકાર્ય"])}</td>
+                            <td class="${colorClass}" contenteditable="true">${escapeHTML(row["એકમ"])}</td>
+                            <td class="${colorClass}" contenteditable="true">${escapeHTML(row["અધ્યયન નિષ્પતિ"])}</td>
+                            <td class="${colorClass}" contenteditable="true">${escapeHTML(row["શૈક્ષણિક મુદ્દા"])}</td>
+                            <td class="${colorClass}" contenteditable="true">${escapeHTML(row["શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ"])}</td>
+                            <td class="${colorClass}" contenteditable="true">${escapeHTML(row["સ્વ.અધ્યયન/સંદર્ભ સાહિત્ય"])}</td>
+                            <td class="${colorClass}" contenteditable="true">${escapeHTML(row["મૂલ્યાંકન/ગૃહકાર્ય"])}</td>
                         </tr>
                     `;
                 });
@@ -405,38 +461,27 @@
             btn.disabled = true;
 
             await document.fonts.ready;
-
             const wrapper = document.getElementById('previewWrapper');
             const container = document.getElementById('multiPageContainer');
             
             wrapper.style.overflow = 'hidden'; 
             container.classList.remove('preview-scale');
 
+            // એડિટ કરેલા ખાનાઓની બ્લિંકિંગ બોર્ડર દૂર કરવા
+            document.querySelectorAll('[contenteditable="true"]').forEach(el => el.style.outline = "none");
+
             const pages = document.querySelectorAll('.print-area');
             const pdfWidth = 297; 
             let pdf = null;
 
             for (let i = 0; i < pages.length; i++) {
-                let pageElement = pages[i];
-                
-                let canvas = await html2canvas(pageElement, { 
-                    scale: 1.5,
-                    useCORS: true, 
-                    logging: false,
-                    backgroundColor: "#ffffff",
-                    letterRendering: true
-                });
-                
+                let canvas = await html2canvas(pages[i], { scale: 1.5, useCORS: true, logging: false, backgroundColor: "#ffffff" });
                 let imgData = canvas.toDataURL('image/jpeg', 1.0);
-                
                 let pdfHeight = (canvas.height * pdfWidth) / canvas.width; 
                 let orientation = pdfWidth > pdfHeight ? 'l' : 'p';
                 
-                if (i === 0) {
-                    pdf = new jsPDF(orientation, 'mm', [pdfWidth, pdfHeight]);
-                } else {
-                    pdf.addPage([pdfWidth, pdfHeight], orientation);
-                }
+                if (i === 0) pdf = new jsPDF(orientation, 'mm', [pdfWidth, pdfHeight]);
+                else pdf.addPage([pdfWidth, pdfHeight], orientation);
                 
                 pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
             }
@@ -453,6 +498,9 @@
             btn.innerText = originalText;
             btn.disabled = false;
         }
+
+        // પેજ લોડ થાય ત્યારે ટાઈમટેબલ તૈયાર કરો
+        window.onload = buildTimetableForm;
     </script>
 </body>
 </html>
