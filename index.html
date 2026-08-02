@@ -63,9 +63,12 @@
         #settingsArea { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
         .day-block { margin-bottom: 20px; background: white; padding: 10px; border-radius: 6px; border-left: 5px solid var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .day-title { font-size: 20px; font-weight: bold; color: var(--primary-color); margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;}
-        .period-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
-        .period-row select { padding: 6px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; font-size: 16px; font-weight: bold;}
-        .period-lbl { font-weight: bold; min-width: 60px; }
+        
+        /* Updated Mobile-Friendly CSS for Select Boxes */
+        .period-row { display: flex; gap: 5px; align-items: center; margin-bottom: 12px; justify-content: space-between; flex-wrap: nowrap; }
+        .period-lbl { font-weight: bold; min-width: 48px; font-size: 15px; color: #333; }
+        .period-row select { padding: 8px 4px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; font-size: 15px; font-weight: bold; width: 45%; }
+        
         .holiday-box { margin-bottom: 20px; }
         .holiday-box input { width: 100%; }
 
@@ -106,7 +109,6 @@
         th:nth-child(8), td:nth-child(8) { width: 13%; } 
         th:nth-child(9), td:nth-child(9) { width: 13%; } 
         
-        /* contenteditable વાળું ખાનું એડિટ કરતી વખતે બેકગ્રાઉન્ડ બદલાય તે માટે */
         td[contenteditable="true"]:focus { background-color: #fff9c4 !important; outline: 3px dashed var(--primary-color); }
 
         th, td { border: 3px solid #444; padding: 16px 12px; vertical-align: top; line-height: 1.35; font-weight: 700; word-break: break-word; overflow-wrap: break-word; white-space: pre-wrap; letter-spacing: 0.3px; }
@@ -135,7 +137,6 @@
             <button class="tab-btn" id="tabSettings" onclick="setMode('settings')">સેટિંગ્સ (ટાઈમટેબલ)</button>
         </div>
 
-        <!-- રોજનીશી મેળવવાનું ફોર્મ -->
         <div id="mainForm">
             <div class="input-group">
                 <div class="date-field">
@@ -153,7 +154,6 @@
             </div>
         </div>
 
-        <!-- સેટિંગ્સ અને ટાઈમટેબલ ફોર્મ (Step 1) -->
         <div id="settingsArea" class="hidden">
             <div class="holiday-box">
                 <label style="font-weight: bold; color: #d32f2f;">રજાઓની તારીખ (અલ્પવિરામથી અલગ કરો દા.ત. 15-08-2024, 19-08-2024):</label>
@@ -171,7 +171,6 @@
 
     <div class="preview-wrapper" id="previewWrapper">
         <div id="multiPageContainer" class="preview-scale">
-            <!-- Dynamic Pages Will Be Inserted Here -->
         </div>
     </div>
 
@@ -188,13 +187,11 @@
         const standards = ["-", "૬", "૭", "૮"];
         const subjects = ["-", "ગુજરાતી", "ગણિત", "વિજ્ઞાન", "સા.વિજ્ઞાન", "અંગ્રેજી", "હિન્દી", "સંસ્કૃત", "ચિત્ર/પીટી"];
 
-        // એપ ચાલુ થાય ત્યારે ટાઈમટેબલનું ફોર્મ જનરેટ કરો
         function buildTimetableForm() {
             const builder = document.getElementById('timetableBuilder');
             let html = "";
             
             daysArr.forEach(day => {
-                // શનિવારે ૫ તાસ, બાકીના દિવસોમાં ૮ તાસ
                 let totalPeriods = (day === "શનિવાર") ? 5 : 8;
                 
                 html += `<div class="day-block"><div class="day-title">${day}</div>`;
@@ -212,10 +209,9 @@
                 html += `</div>`;
             });
             builder.innerHTML = html;
-            loadSettings(); // સેવ કરેલો ડેટા ભરી દો
+            loadSettings(); 
         }
 
-        // લોકલ સ્ટોરેજમાંથી ડેટા લાવવા
         function loadSettings() {
             let savedTT = localStorage.getItem("myTimetable");
             let savedHolidays = localStorage.getItem("myHolidays");
@@ -236,7 +232,6 @@
             }
         }
 
-        // સેટિંગ્સ સેવ કરવા (મોબાઈલની મેમરીમાં)
         function saveSettings() {
             let ttData = {};
             daysArr.forEach(day => {
@@ -257,7 +252,6 @@
             setTimeout(() => { msg.classList.add('hidden'); }, 3000);
         }
 
-        // મોડ બદલવા (UI ટૅબ્સ)
         function setMode(mode) {
             currentMode = mode;
             document.getElementById('emptyMessage').classList.add('hidden');
@@ -287,7 +281,6 @@
             }
         }
 
-        // કલર કોડિંગ
         function getSubjectColorClass(subject) {
             let sub = subject.trim().toLowerCase();
             if (sub.includes('ગુજરાતી')) return 'sub-gujarati';
@@ -304,10 +297,8 @@
             return str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag));
         }
 
-        // [સ્ટેપ ૨ માં અહીંથી ડેટા ફેચિંગનું નવું માસ્ટર લોજિક આવશે. અત્યારે હાલની પ્રિન્ટ સિસ્ટમ ચાલુ રાખી છે]
         async function getRojnishiData(startDate, endDate) {
             try {
-                // તમારી વર્તમાન લિંક (સ્ટેપ ૨ માં આપણે આની અંદરનો ડેટાબેઝ બદલીશું)
                 const sheetURL = "https://script.google.com/macros/s/AKfycbyjXDeRgaDVqMIDvtZaCj9gLxI61pubZ1duC-LRUzVJnuHEOuS6-ei2S_GLkiN6Ab1e5g/exec";
                 const response = await fetch(sheetURL);
                 if (!response.ok) throw new Error("ગૂગલ શીટની લિંક કામ કરી રહી નથી.");
@@ -422,7 +413,6 @@
                 rows.forEach(row => {
                     let subject = escapeHTML(row["વિષય"]);
                     let colorClass = getSubjectColorClass(subject);
-                    // સૌથી મોટો જાદુ: contenteditable="true" જેથી શિક્ષકો ડાયરેક્ટ ટાઈપ કરી શકે
                     pageHTML += `
                         <tr>
                             <td class="${colorClass}">${escapeHTML(row["તાસ"])}</td>
@@ -467,7 +457,6 @@
             wrapper.style.overflow = 'hidden'; 
             container.classList.remove('preview-scale');
 
-            // એડિટ કરેલા ખાનાઓની બ્લિંકિંગ બોર્ડર દૂર કરવા
             document.querySelectorAll('[contenteditable="true"]').forEach(el => el.style.outline = "none");
 
             const pages = document.querySelectorAll('.print-area');
@@ -499,7 +488,6 @@
             btn.disabled = false;
         }
 
-        // પેજ લોડ થાય ત્યારે ટાઈમટેબલ તૈયાર કરો
         window.onload = buildTimetableForm;
     </script>
 </body>
