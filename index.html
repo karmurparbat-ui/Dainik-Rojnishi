@@ -57,7 +57,7 @@
         .school-header { text-align: center; flex-grow: 1; }
         .school-header h1 { margin: 0; font-size: 75px; color: var(--primary-color); font-weight: 700; }
         .address-dise { font-size: 38px; font-weight: 700; color: #444; margin: 10px 0 0 0; }
-        .info-row { display: flex; justify-content: space-between; font-size: 42px; font-weight: 700; margin-bottom: 25px; border-bottom: 5px solid var(--primary-color); padding-bottom: 12px; padding: left: 25px; padding-right: 25px; color: var(--primary-color); }
+        .info-row { display: flex; justify-content: space-between; font-size: 42px; font-weight: 700; margin-bottom: 25px; border-bottom: 5px solid var(--primary-color); padding-bottom: 12px; padding-left: 25px; padding-right: 25px; color: var(--primary-color); }
         .info-row span { color: #222; }
         table { width: 100%; border-collapse: collapse; font-size: 36px; table-layout: fixed; }
         th:nth-child(1), td:nth-child(1) { width: 3%; text-align: center; } 
@@ -240,12 +240,12 @@
             return 'sub-other';
         }
 
+        // ભૂલ સુધારેલી escapeHTML (જે આંકડાઓને પણ ટેક્સ્ટમાં ફેરવી દેશે)
         function escapeHTML(str) {
-            if(!str) return "—";
-            return str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag));
+            if(str === null || str === undefined || str === "") return "—";
+            return String(str).replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag));
         }
 
-        // તારીખને YYYY-MM-DD અને DD-MM-YYYY ફોર્મેટમાં ફેરવવાના ફંક્શન
         function toYYYYMMDD(d) {
             return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
         }
@@ -270,21 +270,18 @@
             document.getElementById('actionBtns').classList.add('hidden');
 
             try {
-                // માસ્ટર ડેટા ખેંચવો
                 const response = await fetch(sheetURL);
                 if (!response.ok) throw new Error("ગૂગલ શીટ લિંક એરર");
                 const json = await response.json();
                 
                 if(!json.success) throw new Error(json.error);
                 
-                // ડેટાનો નકશો (Map) બનાવવો: "ધોરણ_વિષય_ક્રમ"
                 let masterDataMap = {};
                 json.data.forEach(row => {
                     let key = `${row["ધોરણ"]}_${row["વિષય"]}_${row["ક્રમ"]}`;
                     masterDataMap[key] = row;
                 });
 
-                // તારીખો સેટ કરવી
                 let [ty, tm, td] = termStartVal.split('-');
                 let tStart = new Date(ty, tm-1, td);
                 
@@ -294,7 +291,6 @@
                 let [ey, em, ed] = endVal.split('-');
                 let qEnd = new Date(ey, em-1, ed);
 
-                // રજાઓનું લિસ્ટ
                 let hInput = localStorage.getItem("myHolidays") || "";
                 let holidaysArr = hInput.split(",").map(s => s.trim());
                 let ttData = JSON.parse(localStorage.getItem("myTimetable") || "{}");
@@ -302,12 +298,11 @@
                 let seqTracker = {}; 
                 let groupedData = {};
 
-                // સત્ર શરૂથી લઈને અત્યાર સુધીની ગણતરી (Sequence Logic)
                 let curr = new Date(tStart);
                 while(curr <= qEnd) {
                     let currYMD = toYYYYMMDD(curr);
                     let currDDMMYYYY = toDDMMYYYY(curr);
-                    let dOfWeek = curr.getDay(); // 0 is Sunday
+                    let dOfWeek = curr.getDay(); 
                     let dayName = dayNamesFull[dOfWeek];
 
                     let isHoliday = (dOfWeek === 0) || holidaysArr.includes(currDDMMYYYY) || holidaysArr.includes(currYMD);
@@ -322,10 +317,8 @@
 
                             if(std && sub && std !== "-" && sub !== "-") {
                                 let trackerKey = `${std}_${sub}`;
-                                // ક્રમ (Sequence) માં 1 નો વધારો કરો
                                 seqTracker[trackerKey] = (seqTracker[trackerKey] || 0) + 1; 
 
-                                // જો આજનો દિવસ આપણા રિપોર્ટની તારીખમાં આવતો હોય, તો ડેટા ટેબલમાં ઉમેરો
                                 if(curr >= qStart && curr <= qEnd) {
                                     let currentSeq = seqTracker[trackerKey];
                                     let masterKey = `${std}_${sub}_${currentSeq}`;
@@ -335,7 +328,7 @@
                                         "તાસ": p, "ધોરણ": std, "વિષય": sub,
                                         "એકમ": mRow ? mRow["એકમ"] : "",
                                         "અધ્યયન નિષ્પતિ": mRow ? mRow["અધ્યયન નિષ્પતિ"] : "",
-                                        "શૈક્ષણિક મુદ્દા": mRow ? mRow["શૈક્ષણિક મુદ્દા"] : (mRow ? "" : ""), // ડેટા ના હોય તો ખાલી રાખશે જેથી ટાઈપ કરી શકાય
+                                        "શૈક્ષણિક મુદ્દા": mRow ? mRow["શૈક્ષણિક મુદ્દા"] : "", 
                                         "શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ": mRow ? mRow["શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ"] : "",
                                         "સ્વ.અધ્યયન/સંદર્ભ સાહિત્ય": mRow ? mRow["સ્વ.અધ્યયન/સંદર્ભ સાહિત્ય"] : "",
                                         "મૂલ્યાંકન/ગૃહકાર્ય": mRow ? mRow["મૂલ્યાંકન/ગૃહકાર્ય"] : ""
@@ -347,7 +340,7 @@
                             groupedData[currDDMMYYYY] = { dayStr: dayName, rows: dailyRows };
                         }
                     }
-                    curr.setDate(curr.getDate() + 1); // ગો ટુ નેક્સ્ટ ડે
+                    curr.setDate(curr.getDate() + 1); 
                 }
 
                 renderMultiplePages(groupedData);
