@@ -181,7 +181,8 @@
             }
         }
 
-        function saveSettings() {
+        // નવી હાઇબ્રિડ સેવ સિસ્ટમ (Local + Firebase)
+        async function saveSettings() {
             let ttData = {};
             daysArr.forEach(day => {
                 ttData[day] = {};
@@ -194,13 +195,36 @@
                 }
             });
             
+            const holidays = document.getElementById('holidayInput').value;
+            const termStart = document.getElementById('termStartDate').value;
+
+            // ૧. હંમેશાની જેમ પહેલા લોકલ સ્ટોરેજમાં સેવ કરો (ઓફલાઇન સ્પીડ માટે)
             localStorage.setItem("myTimetable", JSON.stringify(ttData));
-            localStorage.setItem("myHolidays", document.getElementById('holidayInput').value);
-            localStorage.setItem("termStartDate", document.getElementById('termStartDate').value);
+            localStorage.setItem("myHolidays", holidays);
+            localStorage.setItem("termStartDate", termStart);
             
             let msg = document.getElementById('saveSuccess');
+            msg.innerText = "ડેટા ઓફલાઈન સેવ થઈ ગયો છે, ક્લાઉડ બેકઅપ લેવાઈ રહ્યો છે...";
+            msg.style.color = "blue";
             msg.classList.remove('hidden');
-            setTimeout(() => { msg.classList.add('hidden'); }, 3000);
+            
+            // ૨. ફાયરબેઝમાં કાયમી બેકઅપ (જો નેટવર્ક અને લોગિન હશે તો જ)
+            if (window.backupToFirebase) {
+                const backupData = {
+                    timetable: ttData,
+                    holidays: holidays,
+                    termStartDate: termStart,
+                    lastUpdated: new Date().toISOString()
+                };
+                await window.backupToFirebase(backupData);
+                msg.innerText = "સેટિંગ્સ સફળતાપૂર્વક કાયમ માટે સેવ થઈ ગયા!";
+                msg.style.color = "green";
+            } else {
+                msg.innerText = "સેટિંગ્સ માત્ર લોકલ સ્ટોરેજમાં સેવ થયા છે!";
+                msg.style.color = "green";
+            }
+
+            setTimeout(() => { msg.classList.add('hidden'); }, 4000);
         }
 
         function setMode(mode) {
@@ -270,7 +294,6 @@
             if(currentMode === 'single') endVal = startVal; 
             else if(!endVal) { emptyMsg.innerText = "કૃપા કરીને અંતિમ તારીખ પસંદ કરો."; emptyMsg.classList.remove('hidden'); return; }
             
-            // નવો લોડિંગ મેસેજ
             loadingDiv.innerText = "માસ્ટર ડેટા શોધાઈ રહ્યો છે... (જો નેટવર્ક ધીમું હશે તો થોડી વાર લાગી શકે છે)";
             loadingDiv.style.display = 'block';
             emptyMsg.classList.add('hidden');
@@ -278,7 +301,6 @@
             document.getElementById('actionBtns').classList.add('hidden');
 
             try {
-                // ઇન્ટરનેટ કનેક્શન ચેક
                 if (!navigator.onLine) {
                     throw new Error("તમારો મોબાઈલ ઇન્ટરનેટ સાથે જોડાયેલો નથી. કૃપા કરીને ડેટા કે વાઈ-ફાઈ ચાલુ કરો.");
                 }
@@ -366,7 +388,6 @@
                 loadingDiv.style.display = 'none';
                 let errorMsg = error.message;
                 
-                // નેટવર્ક એરરને ઓળખવા માટેની શરત
                 if (errorMsg.includes("Failed to fetch") || errorMsg.includes("NetworkError")) {
                     errorMsg = "ઇન્ટરનેટ કનેક્શન ખૂબ ધીમું છે અથવા નેટવર્ક નથી મળી રહ્યું. કૃપા કરીને થોડીવાર પછી ફરીથી પ્રયાસ કરો.";
                 }
@@ -485,13 +506,13 @@
 
         window.onload = buildTimetableForm;
     </script>
-<!-- Firebase સિક્યોરિટી લોક અને ડેટાબેઝ કનેક્શન -->
+
+    <!-- Firebase સિક્યોરિટી લોક અને ડેટાબેઝ કનેક્શન (અપડેટેડ) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
 
-        // તમારો ફાયરબેઝ Config કોડ 
         const firebaseConfig = {
             apiKey: "AIzaSyDY8EyUxzOivMNzTsaHV9M8EvF48nLlYAA",
             authDomain: "dainikrojnishi.firebaseapp.com",
@@ -502,23 +523,33 @@
             measurementId: "G-SSM6EX4LRM"
         };
 
-        // ફાયરબેઝ શરૂ કરો
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        window.db = getFirestore(app); // ડેટાબેઝને ગ્લોબલ બનાવ્યો જેથી આખી એપમાં કામ લાગે
+        window.db = getFirestore(app);
 
-        // સિક્યોરિટી લોક: ચેક કરો કે યુઝર લોગિન છે કે નહીં?
+        // સિક્યોરિટી લોક
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // યુઝર લોગિન છે! (તેને એપ વાપરવા દો)
                 console.log("સ્વાગત છે:", user.displayName);
             } else {
-                // યુઝર લોગિન નથી! સીધો login.html પર ધક્કો મારો
                 window.location.replace("login.html");
             }
         });
 
-        // લોગઆઉટ કરવા માટેનું ફંક્શન
+        // ડેટાબેઝમાં બેકઅપ લેવા માટેનું નવું ફંક્શન
+        window.backupToFirebase = async function(dataToSave) {
+            const user = auth.currentUser;
+            if (user) {
+                try {
+                    const userRef = doc(window.db, "users", user.uid);
+                    await setDoc(userRef, dataToSave, { merge: true });
+                    console.log("ફાયરબેઝમાં બેકઅપ સફળ રહ્યો!");
+                } catch (error) {
+                    console.error("ફાયરબેઝ બેકઅપ એરર:", error);
+                }
+            }
+        };
+
         window.logoutUser = function() {
             signOut(auth).then(() => {
                 window.location.replace("login.html");
