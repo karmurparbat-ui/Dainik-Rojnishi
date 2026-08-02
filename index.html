@@ -485,5 +485,45 @@
 
         window.onload = buildTimetableForm;
     </script>
+<!-- Firebase સિક્યોરિટી લોક અને ડેટાબેઝ કનેક્શન -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+
+        // તમારો ફાયરબેઝ Config કોડ 
+        const firebaseConfig = {
+            apiKey: "AIzaSyDY8EyUxzOivMNzTsaHV9M8EvF48nLlYAA",
+            authDomain: "dainikrojnishi.firebaseapp.com",
+            projectId: "dainikrojnishi",
+            storageBucket: "dainikrojnishi.firebasestorage.app",
+            messagingSenderId: "60107107456",
+            appId: "1:60107107456:web:fa958369acd57cdc900a65",
+            measurementId: "G-SSM6EX4LRM"
+        };
+
+        // ફાયરબેઝ શરૂ કરો
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        window.db = getFirestore(app); // ડેટાબેઝને ગ્લોબલ બનાવ્યો જેથી આખી એપમાં કામ લાગે
+
+        // સિક્યોરિટી લોક: ચેક કરો કે યુઝર લોગિન છે કે નહીં?
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // યુઝર લોગિન છે! (તેને એપ વાપરવા દો)
+                console.log("સ્વાગત છે:", user.displayName);
+            } else {
+                // યુઝર લોગિન નથી! સીધો login.html પર ધક્કો મારો
+                window.location.replace("login.html");
+            }
+        });
+
+        // લોગઆઉટ કરવા માટેનું ફંક્શન
+        window.logoutUser = function() {
+            signOut(auth).then(() => {
+                window.location.replace("login.html");
+            });
+        }
+    </script>    
 </body>
 </html>
