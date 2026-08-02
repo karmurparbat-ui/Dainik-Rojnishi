@@ -507,11 +507,11 @@
         window.onload = buildTimetableForm;
     </script>
 
-    <!-- Firebase સિક્યોરિટી લોક અને ડેટાબેઝ કનેક્શન (અપડેટેડ) -->
+<!-- Firebase સિક્યોરિટી લોક અને ડેટાબેઝ કનેક્શન (અપડેટેડ Sync સાથે) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDY8EyUxzOivMNzTsaHV9M8EvF48nLlYAA",
@@ -527,16 +527,43 @@
         const auth = getAuth(app);
         window.db = getFirestore(app);
 
-        // સિક્યોરિટી લોક
-        onAuthStateChanged(auth, (user) => {
+        // સિક્યોરિટી લોક અને ક્લાઉડ સિંક (Cloud Sync)
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 console.log("સ્વાગત છે:", user.displayName);
+                
+                // --- નવો કોડ: ફાયરબેઝમાંથી ડેટા પાછો લાવો ---
+                try {
+                    const userRef = doc(window.db, "users", user.uid);
+                    const docSnap = await getDoc(userRef);
+                    
+                    if (docSnap.exists()) {
+                        const cloudData = docSnap.data();
+                        
+                        // જો લોકલ સ્ટોરેજમાં ટાઈમટેબલ ન હોય (નવો મોબાઈલ હોય), તો ક્લાઉડમાંથી સેટ કરો
+                        if (!localStorage.getItem("myTimetable") && cloudData.timetable) {
+                            localStorage.setItem("myTimetable", JSON.stringify(cloudData.timetable));
+                            localStorage.setItem("myHolidays", cloudData.holidays || "");
+                            localStorage.setItem("termStartDate", cloudData.termStartDate || "");
+                            
+                            // ડેટા આવ્યા પછી UI માં દેખાડવા માટે ફંક્શન ફરી ચલાવો
+                            if(typeof loadSettings === "function") {
+                                loadSettings(); 
+                            }
+                            console.log("ક્લાઉડમાંથી તમારું ટાઈમટેબલ સફળતાપૂર્વક રિસ્ટોર થઈ ગયું છે!");
+                        }
+                    }
+                } catch (error) {
+                    console.error("ક્લાઉડમાંથી ડેટા લાવવામાં ભૂલ:", error);
+                }
+                // ------------------------------------------
+
             } else {
                 window.location.replace("login.html");
             }
         });
 
-        // ડેટાબેઝમાં બેકઅપ લેવા માટેનું નવું ફંક્શન
+        // ડેટાબેઝમાં બેકઅપ લેવા માટેનું ફંક્શન
         window.backupToFirebase = async function(dataToSave) {
             const user = auth.currentUser;
             if (user) {
@@ -555,6 +582,6 @@
                 window.location.replace("login.html");
             });
         }
-    </script>    
+    </script>   
 </body>
 </html>
