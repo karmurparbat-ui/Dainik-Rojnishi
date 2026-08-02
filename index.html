@@ -130,7 +130,6 @@
         window.jsPDF = window.jspdf.jsPDF;
         let currentMode = 'single';
         
-        // તમારી નવી ગૂગલ શીટ લિંક
         const sheetURL = "https://script.google.com/macros/s/AKfycbz3GI4edQ6MLq-ki7BHTqeovpxBDujBm1_RojTZjqNgn-yUqY2o3jbbaOi-LHQCUvhy/exec";
 
         const appConfig = { schoolName: 'શ્રી કોરાડા વાડી પ્રાથમિક શાળા', teacherName: 'પરબતભાઈ કરમુર' };
@@ -240,7 +239,6 @@
             return 'sub-other';
         }
 
-        // ભૂલ સુધારેલી escapeHTML (જે આંકડાઓને પણ ટેક્સ્ટમાં ફેરવી દેશે)
         function escapeHTML(str) {
             if(str === null || str === undefined || str === "") return "—";
             return String(str).replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag));
@@ -251,6 +249,12 @@
         }
         function toDDMMYYYY(d) {
             return String(d.getDate()).padStart(2,'0') + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + d.getFullYear();
+        }
+
+        // નવું ફંક્શન: અંગ્રેજી ધોરણને ઓટોમેટિક ગુજરાતીમાં ફેરવશે
+        function normalizeStd(stdStr) {
+            if(!stdStr) return "";
+            return String(stdStr).replace(/6/g, '૬').replace(/7/g, '૭').replace(/8/g, '૮').trim();
         }
 
         async function fetchData() {
@@ -278,7 +282,12 @@
                 
                 let masterDataMap = {};
                 json.data.forEach(row => {
-                    let key = `${row["ધોરણ"]}_${row["વિષય"]}_${row["ક્રમ"]}`;
+                    // અહીં અંગ્રેજી 6,7,8 ને ગુજરાતી ૬,૭,૮ માં ફેરવવામાં આવે છે
+                    let nStd = normalizeStd(row["ધોરણ"]);
+                    let nSub = (row["વિષય"] || "").trim();
+                    let nSeq = (row["ક્રમ"] || "").toString().trim();
+                    
+                    let key = `${nStd}_${nSub}_${nSeq}`;
                     masterDataMap[key] = row;
                 });
 
@@ -313,7 +322,7 @@
 
                         for(let p = 1; p <= totalPeriods; p++) {
                             let std = ttData[dayName][p].std;
-                            let sub = ttData[dayName][p].sub;
+                            let sub = (ttData[dayName][p].sub || "").trim();
 
                             if(std && sub && std !== "-" && sub !== "-") {
                                 let trackerKey = `${std}_${sub}`;
