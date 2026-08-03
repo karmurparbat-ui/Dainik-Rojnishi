@@ -51,6 +51,10 @@
         .success-message { text-align: center; font-size: 18px; color: green; font-weight: 700; margin-top: 10px; }
         .hidden { display: none !important; }
 
+        /* પ્રીમિયમ મોડલ (પોપઅપ) સ્ટાઈલ */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; display: flex; }
+        .modal-box { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
         /* Settings Area */
         #settingsArea { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
         .day-block { margin-bottom: 20px; background: white; padding: 10px; border-radius: 6px; border-left: 5px solid var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -127,7 +131,8 @@
                     <button class="main-btn btn-search" onclick="fetchData()">માહિતી મેળવો</button>
                 </div>
                 <div class="action-btns hidden" id="actionBtns">
-                    <button class="main-btn btn-pdf" id="btnPdf" onclick="downloadPDF()">PDF ડાઉનલોડ કરો</button>
+                    <!-- PDF ડાઉનલોડ બટનને હાલ પૂરતું પ્રીમિયમ પોપઅપ સાથે લિંક કર્યું છે -->
+                    <button class="main-btn btn-pdf" id="btnPdf" onclick="showPremiumModal()">PDF ડાઉનલોડ કરો</button>
                 </div>
             </div>
 
@@ -151,6 +156,30 @@
 
         <div class="preview-wrapper" id="previewWrapper">
             <div id="multiPageContainer" class="preview-scale"></div>
+        </div>
+    </div>
+
+    <!-- પ્રીમિયમ મોડલ (પોપઅપ) -->
+    <div id="premiumModal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h2 style="color:#1a5f7a; margin-top:0;">👑 પ્રીમિયમ વર્ઝન</h2>
+            <p style="font-size: 16px; color: #444;">PDF ડાઉનલોડ અને અન્ય તમામ ફીચર્સ અનલોક કરવા માટે પ્રીમિયમ પ્લાન એક્ટિવેટ કરો.</p>
+            
+            <div style="background:#f0f2f5; padding:15px; border-radius:8px; margin:15px 0;">
+                <h3 style="margin:0; color:#333;">વાર્ષિક લવાજમ: ₹૨૯૯</h3>
+                
+                <!-- અહી qrcode.jpg નામથી ફોટો લિંક કરેલ છે -->
+                <img src="qrcode.jpg" alt="UPI QR Code" style="width:160px; height:160px; border:2px solid #ccc; border-radius:10px; margin:10px 0;">
+                
+                <p style="font-weight:bold; margin:0; font-size:18px; color:#1a5f7a;">UPI ID: karmur@upi</p>
+            </div>
+            
+            <button onclick="sendWhatsApp()" style="background:#25D366; color:white; border:none; padding:12px 15px; border-radius:6px; font-weight:bold; width:100%; cursor:pointer; font-size:16px; margin-bottom:10px;">
+                💬 WhatsApp પર સ્ક્રીનશોટ મોકલો
+            </button>
+            <button onclick="closePremiumModal()" style="background:#d32f2f; color:white; border:none; padding:12px 15px; border-radius:6px; font-weight:bold; width:100%; cursor:pointer; font-size:16px;">
+                ❌ બંધ કરો
+            </button>
         </div>
     </div>
 
@@ -533,7 +562,35 @@
             btn.disabled = false;
         }
 
-        window.onload = buildTimetableForm;
+        // આજની તારીખ આપમેળે સેટ કરવા અને ટાઈમટેબલ લોડ કરવા માટેનો સુધારેલો કોડ
+        window.onload = function() {
+            buildTimetableForm();
+            
+            let today = new Date();
+            let dd = String(today.getDate()).padStart(2, '0');
+            let mm = String(today.getMonth() + 1).padStart(2, '0'); 
+            let yyyy = today.getFullYear();
+            
+            let todayStr = yyyy + '-' + mm + '-' + dd;
+            document.getElementById('startDate').value = todayStr;
+        };
+
+        // પ્રીમિયમ મોડલ (પોપઅપ) ખોલવા-બંધ કરવા અને WhatsApp મેસેજ માટેના ફંક્શન
+        window.showPremiumModal = function() {
+            document.getElementById("premiumModal").classList.remove("hidden");
+        };
+
+        window.closePremiumModal = function() {
+            document.getElementById("premiumModal").classList.add("hidden");
+        };
+
+        window.sendWhatsApp = function() {
+            let myNumber = "910000000000"; // તમારો સાચો મોબાઈલ નંબર 91 સાથે અહીં લખજો
+            let msg = "નમસ્તે પરબતભાઈ, મેં 'દૈનિક રોજનીશી' એપના પ્રીમિયમ વર્ઝન (₹૨૯૯) માટે પેમેન્ટ કર્યું છે. મારો સ્ક્રીનશોટ આ સાથે મોકલું છું.";
+            let waLink = "https://wa.me/" + myNumber + "?text=" + encodeURIComponent(msg);
+            window.open(waLink, "_blank");
+        };
+
     </script>
 
     <!-- Firebase સિક્યોરિટી લોક અને ડેટાબેઝ કનેક્શન (નવા રિફ્રેશ અને લોગ આઉટ કોડ સાથે) -->
