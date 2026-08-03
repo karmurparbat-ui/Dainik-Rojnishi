@@ -15,7 +15,24 @@
     <style>
         :root { --bg-color: #f0f2f5; --primary-color: #1a5f7a; --secondary-color: #0e8388; --text-color: #222; }
         *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: 'Rasa', 'Nirmala UI', 'Shruti', serif; background-color: transparent; margin: 0; padding: 10px; color: var(--text-color); }
+        body { font-family: 'Rasa', 'Nirmala UI', 'Shruti', serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-color); display: flex; flex-direction: column; min-height: 100vh; }
+        
+        /* નવું હેડર અને બટન્સ માટે CSS */
+        .app-header { background-color: var(--primary-color); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); margin-bottom: 20px; }
+        .header-title { font-size: 24px; font-weight: bold; }
+        .header-buttons { display: flex; gap: 10px; }
+        .nav-btn { padding: 8px 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-family: inherit; font-size: 16px; transition: 0.3s; }
+        .btn-refresh { background-color: white; color: var(--primary-color); }
+        .btn-refresh:hover { background-color: #e0e0e0; }
+        .btn-logout { background-color: #d32f2f; color: white; }
+        .btn-logout:hover { background-color: #b71c1c; }
+
+        /* નવું ફૂટર માટે CSS */
+        .app-footer { background-color: #0b4c6c; color: white; text-align: center; padding: 15px; margin-top: auto; }
+        .app-footer h3 { margin: 0; font-size: 20px; }
+        .app-footer p { margin: 5px 0 0 0; font-size: 16px; }
+
+        .main-container { padding: 0 10px; }
         .controls-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 850px; margin: 0 auto 20px auto; border-top: 4px solid var(--primary-color); }
         .tab-buttons { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; flex-wrap: wrap; }
         .tab-btn { padding: 8px 16px; border: 2px solid var(--primary-color); background: transparent; color: var(--primary-color); border-radius: 20px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
@@ -75,63 +92,78 @@
         .sub-gujarati { background-color: #E1F5FE; } .sub-maths { background-color: #E8F5E9; } .sub-evs { background-color: #FFF9C4; } .sub-english { background-color: #F3E5F5; } .sub-hindi { background-color: #FFE0B2; } .sub-sanskrit { background-color: #FCE4EC; } .sub-other { background-color: #F5F5F5; }
         .signature-row { display: flex; justify-content: space-between; font-size: 45px; font-weight: 700; padding: 20px 25px 10px 25px; margin-top: 15px; }
         @media (max-width: 900px) { .preview-scale { transform: scale(0.30); margin-bottom: -65%; } }
-        @media (max-width: 600px) { .preview-scale { transform: scale(0.24); margin-bottom: -72%; } .action-btns { flex-direction: column; } }
+        @media (max-width: 600px) { .preview-scale { transform: scale(0.24); margin-bottom: -72%; } .action-btns { flex-direction: column; } .app-header { flex-direction: column; gap: 15px; } }
     </style>
 </head>
 <body>
 
-    <div class="controls-card">
-        <div class="tab-buttons">
-            <button class="tab-btn active" id="tabSingle" onclick="setMode('single')">એક દિવસ</button>
-            <button class="tab-btn" id="tabRange" onclick="setMode('range')">વધુ દિવસો (રેન્જ)</button>
-            <button class="tab-btn" id="tabSettings" onclick="setMode('settings')">સેટિંગ્સ (ટાઈમટેબલ)</button>
-        </div>
-
-        <div id="mainForm">
-            <div class="input-group">
-                <div class="date-field">
-                    <label id="lblStartDate">તારીખ પસંદ કરો:</label>
-                    <input type="date" id="startDate">
-                </div>
-                <div class="date-field hidden" id="endDateWrapper">
-                    <label>અંતિમ તારીખ:</label>
-                    <input type="date" id="endDate">
-                </div>
-                <button class="main-btn btn-search" onclick="fetchData()">માહિતી મેળવો</button>
-            </div>
-            <div class="action-btns hidden" id="actionBtns">
-                <button class="main-btn btn-pdf" id="btnPdf" onclick="downloadPDF()">PDF ડાઉનલોડ કરો</button>
-            </div>
-        </div>
-
-        <div id="settingsArea" class="hidden">
-            <div class="settings-box">
-                <label>સત્ર શરૂ થયાની તારીખ (Term Start Date):</label>
-                <input type="date" id="termStartDate">
-                
-                <label style="color: #d32f2f; margin-top:10px;">રજાઓની તારીખ (DD-MM-YYYY ફોર્મેટમાં, અલ્પવિરામથી અલગ કરો. દા.ત. 15-08-2024, 19-08-2024):</label>
-                <input type="text" id="holidayInput" placeholder="અહીં રજાઓ લખો...">
-            </div>
-            <h3 style="text-align:center; color: var(--primary-color);">તમારું સાપ્તાહિક ટાઈમટેબલ ગોઠવો</h3>
-            <div id="timetableBuilder"></div>
-            <button class="main-btn btn-save" onclick="saveSettings()">સેટિંગ્સ સેવ કરો</button>
-            <div id="saveSuccess" class="success-message hidden">સેટિંગ્સ સફળતાપૂર્વક સેવ થઈ ગયા!</div>
+    <!-- નવું હેડર અને બટન્સ -->
+    <div class="app-header">
+        <div class="header-title">દૈનિક રોજનીશી</div>
+        <div class="header-buttons">
+            <button class="nav-btn btn-refresh" onclick="refreshPage()">🔄 રિફ્રેશ</button>
+            <button class="nav-btn btn-logout" onclick="logoutUser()">🚪 લોગ આઉટ</button>
         </div>
     </div>
 
-    <!-- ધીમા નેટવર્ક માટે ખાસ મેસેજ -->
-    <div id="loading" class="loading"></div>
-    <div id="emptyMessage" class="empty-message hidden"></div>
+    <div class="main-container">
+        <div class="controls-card">
+            <div class="tab-buttons">
+                <button class="tab-btn active" id="tabSingle" onclick="setMode('single')">એક દિવસ</button>
+                <button class="tab-btn" id="tabRange" onclick="setMode('range')">વધુ દિવસો (રેન્જ)</button>
+                <button class="tab-btn" id="tabSettings" onclick="setMode('settings')">સેટિંગ્સ (ટાઈમટેબલ)</button>
+            </div>
 
-    <div class="preview-wrapper" id="previewWrapper">
-        <div id="multiPageContainer" class="preview-scale"></div>
+            <div id="mainForm">
+                <div class="input-group">
+                    <div class="date-field">
+                        <label id="lblStartDate">તારીખ પસંદ કરો:</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    <div class="date-field hidden" id="endDateWrapper">
+                        <label>અંતિમ તારીખ:</label>
+                        <input type="date" id="endDate">
+                    </div>
+                    <button class="main-btn btn-search" onclick="fetchData()">માહિતી મેળવો</button>
+                </div>
+                <div class="action-btns hidden" id="actionBtns">
+                    <button class="main-btn btn-pdf" id="btnPdf" onclick="downloadPDF()">PDF ડાઉનલોડ કરો</button>
+                </div>
+            </div>
+
+            <div id="settingsArea" class="hidden">
+                <div class="settings-box">
+                    <label>સત્ર શરૂ થયાની તારીખ (Term Start Date):</label>
+                    <input type="date" id="termStartDate">
+                    
+                    <label style="color: #d32f2f; margin-top:10px;">રજાઓની તારીખ (DD-MM-YYYY ફોર્મેટમાં, અલ્પવિરામથી અલગ કરો. દા.ત. 15-08-2024, 19-08-2024):</label>
+                    <input type="text" id="holidayInput" placeholder="અહીં રજાઓ લખો...">
+                </div>
+                <h3 style="text-align:center; color: var(--primary-color);">તમારું સાપ્તાહિક ટાઈમટેબલ ગોઠવો</h3>
+                <div id="timetableBuilder"></div>
+                <button class="main-btn btn-save" onclick="saveSettings()">સેટિંગ્સ સેવ કરો</button>
+                <div id="saveSuccess" class="success-message hidden">સેટિંગ્સ સફળતાપૂર્વક સેવ થઈ ગયા!</div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading"></div>
+        <div id="emptyMessage" class="empty-message hidden"></div>
+
+        <div class="preview-wrapper" id="previewWrapper">
+            <div id="multiPageContainer" class="preview-scale"></div>
+        </div>
+    </div>
+
+    <!-- નવું ફૂટર -->
+    <div class="app-footer">
+        <h3>પરબતભાઈ કરમુર</h3>
+        <p>શ્રી કોરાડા વાડી પ્રાથમિક શાળા</p>
     </div>
 
     <script>
         window.jsPDF = window.jspdf.jsPDF;
         let currentMode = 'single';
         
-        // તમારી ગૂગલ શીટ લિંક
         const sheetURL = "https://script.google.com/macros/s/AKfycbz3GI4edQ6MLq-ki7BHTqeovpxBDujBm1_RojTZjqNgn-yUqY2o3jbbaOi-LHQCUvhy/exec";
 
         const appConfig = { schoolName: 'શ્રી કોરાડા વાડી પ્રાથમિક શાળા', teacherName: 'પરબતભાઈ કરમુર' };
@@ -181,7 +213,6 @@
             }
         }
 
-        // નવી હાઇબ્રિડ સેવ સિસ્ટમ (Local + Firebase)
         async function saveSettings() {
             let ttData = {};
             daysArr.forEach(day => {
@@ -198,7 +229,6 @@
             const holidays = document.getElementById('holidayInput').value;
             const termStart = document.getElementById('termStartDate').value;
 
-            // ૧. હંમેશાની જેમ પહેલા લોકલ સ્ટોરેજમાં સેવ કરો (ઓફલાઇન સ્પીડ માટે)
             localStorage.setItem("myTimetable", JSON.stringify(ttData));
             localStorage.setItem("myHolidays", holidays);
             localStorage.setItem("termStartDate", termStart);
@@ -208,7 +238,6 @@
             msg.style.color = "blue";
             msg.classList.remove('hidden');
             
-            // ૨. ફાયરબેઝમાં કાયમી બેકઅપ (જો નેટવર્ક અને લોગિન હશે તો જ)
             if (window.backupToFirebase) {
                 const backupData = {
                     timetable: ttData,
@@ -507,7 +536,7 @@
         window.onload = buildTimetableForm;
     </script>
 
-<!-- Firebase સિક્યોરિટી લોક અને ડેટાબેઝ કનેક્શન (અપડેટેડ Sync સાથે) -->
+    <!-- Firebase સિક્યોરિટી લોક અને ડેટાબેઝ કનેક્શન (નવા રિફ્રેશ અને લોગ આઉટ કોડ સાથે) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
@@ -532,7 +561,6 @@
             if (user) {
                 console.log("સ્વાગત છે:", user.displayName);
                 
-                // --- નવો કોડ: ફાયરબેઝમાંથી ડેટા પાછો લાવો ---
                 try {
                     const userRef = doc(window.db, "users", user.uid);
                     const docSnap = await getDoc(userRef);
@@ -540,13 +568,11 @@
                     if (docSnap.exists()) {
                         const cloudData = docSnap.data();
                         
-                        // જો લોકલ સ્ટોરેજમાં ટાઈમટેબલ ન હોય (નવો મોબાઈલ હોય), તો ક્લાઉડમાંથી સેટ કરો
                         if (!localStorage.getItem("myTimetable") && cloudData.timetable) {
                             localStorage.setItem("myTimetable", JSON.stringify(cloudData.timetable));
                             localStorage.setItem("myHolidays", cloudData.holidays || "");
                             localStorage.setItem("termStartDate", cloudData.termStartDate || "");
                             
-                            // ડેટા આવ્યા પછી UI માં દેખાડવા માટે ફંક્શન ફરી ચલાવો
                             if(typeof loadSettings === "function") {
                                 loadSettings(); 
                             }
@@ -556,14 +582,11 @@
                 } catch (error) {
                     console.error("ક્લાઉડમાંથી ડેટા લાવવામાં ભૂલ:", error);
                 }
-                // ------------------------------------------
-
             } else {
                 window.location.replace("login.html");
             }
         });
 
-        // ડેટાબેઝમાં બેકઅપ લેવા માટેનું ફંક્શન
         window.backupToFirebase = async function(dataToSave) {
             const user = auth.currentUser;
             if (user) {
@@ -577,9 +600,24 @@
             }
         };
 
+        // રિફ્રેશ ફંક્શન
+        window.refreshPage = function() {
+            window.location.reload(true);
+        };
+
+        // અપડેટેડ લોગ આઉટ ફંક્શન (પૂછપરછ અને સ્ટોરેજ ક્લીનઅપ સાથે)
         window.logoutUser = function() {
-            signOut(auth).then(() => {
-                window.location.replace("login.html");
-            });
-        }
+            let confirmLogout = confirm("શું તમે ખરેખર લોગ આઉટ થવા માંગો છો?");
+            if (confirmLogout) {
+                signOut(auth).then(() => {
+                    localStorage.clear();
+                    window.location.replace("login.html");
+                }).catch((error) => {
+                    alert("લોગ આઉટમાં ભૂલ આવી: " + error.message);
+                });
+            }
+        };
     </script>
+
+</body>
+</html>
