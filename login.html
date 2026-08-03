@@ -50,11 +50,12 @@
         <div id="errorMsg"></div>
     </div>
 
+  <!-- Firebase લોગિન માટેનો નવો કોડ (Redirect System) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
+        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
 
-        // તમારો ફાયરબેઝ Config કોડ 
+        // તમારો ફાયરબેઝ Config કોડ
         const firebaseConfig = {
             apiKey: "AIzaSyDY8EyUxzOivMNzTsaHV9M8EvF48nLlYAA",
             authDomain: "dainikrojnishi.firebaseapp.com",
@@ -65,34 +66,33 @@
             measurementId: "G-SSM6EX4LRM"
         };
 
+        // ફાયરબેઝ શરૂ કરો
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        window.signInWithGoogle = function() {
-            const btn = document.getElementById('googleBtn');
-            const loadingMsg = document.getElementById('loadingMsg');
-            const errorMsg = document.getElementById('errorMsg');
-            
-            btn.style.display = 'none';
-            errorMsg.style.display = 'none';
-            loadingMsg.style.display = 'block';
+        // ૧. ચેક કરો કે યુઝર પહેલેથી લોગિન છે કે નહિ
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // જો લોગિન હોય તો સીધા રોજનીશીના પેજ પર મોકલી દો
+                window.location.replace("index.html");
+            }
+        });
 
-            signInWithPopup(auth, provider)
-                .then((result) => {
-                    const user = result.user;
-                    console.log("લોગિન સફળ: ", user.displayName);
-                    // લોગિન સફળ થતાં જ યુઝરને સીધા મુખ્ય પેજ પર મોકલી દેવાશે
-                    window.location.href = "index.html"; 
-                })
-                .catch((error) => {
-                    loadingMsg.style.display = 'none';
-                    btn.style.display = 'flex';
-                    errorMsg.style.display = 'block';
-                    errorMsg.innerText = "ભૂલ આવી: " + error.message;
-                    console.error("Login Error:", error);
-                });
+        // ૨. જ્યારે ગૂગલ લોગિન (Redirect) થઈને પાછું આવે ત્યારે ડેટા મેળવવાનો કોડ
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) {
+                // લોગિન સફળ થયું!
+                window.location.replace("index.html");
+            }
+        }).catch((error) => {
+            console.error("લોગિનમાં ભૂલ:", error);
+            alert("લોગિન પ્રક્રિયામાં કોઈ ખામી સર્જાઈ છે. ફરી પ્રયાસ કરો.");
+        });
+
+        // ૩. ગૂગલ લોગિન બટન પર ક્લિક કરવાથી ચાલતું ફંક્શન
+        window.loginWithGoogle = function() {
+            // Popup ની જગ્યાએ Redirect પદ્ધતિ (WebView માટે બેસ્ટ)
+            signInWithRedirect(auth, provider);
         }
     </script>
-</body>
-</html>
