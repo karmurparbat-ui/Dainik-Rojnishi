@@ -132,7 +132,7 @@
                 </div>
                 <div class="action-btns hidden" id="actionBtns">
                     <!-- PDF ડાઉનલોડ બટનને હાલ પૂરતું પ્રીમિયમ પોપઅપ સાથે લિંક કર્યું છે -->
-                    <button class="main-btn btn-pdf" id="btnPdf" onclick="showPremiumModal()">PDF ડાઉનલોડ કરો</button>
+                   <button class="main-btn btn-pdf" id="btnPdf" onclick="checkPremiumAndDownload()">PDF ડાઉનલોડ કરો</button>
                 </div>
             </div>
 
@@ -593,7 +593,7 @@
 
     </script>
 
-    <!-- Firebase સિક્યોરિટી લોક અને ડેટાબેઝ કનેક્શન (નવા રિફ્રેશ અને લોગ આઉટ કોડ સાથે) -->
+<!-- Firebase સિક્યોરિટી લોક અને ડેટાબેઝ કનેક્શન -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
@@ -613,7 +613,7 @@
         const auth = getAuth(app);
         window.db = getFirestore(app);
 
-        // સિક્યોરિટી લોક અને ક્લાઉડ સિંક (Cloud Sync)
+        // સિક્યોરિટી લોક અને ડેટાબેઝ ફેચિંગ
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 console.log("સ્વાગત છે:", user.displayName);
@@ -625,16 +625,19 @@
                     if (docSnap.exists()) {
                         const cloudData = docSnap.data();
                         
+                        // યુઝરનો ડેટા ગ્લોબલ વેરીએબલમાં સેવ કર્યો, જેથી બટન દબાવતી વખતે ચેક કરી શકાય
+                        window.currentUserData = cloudData; 
+                        
                         if (!localStorage.getItem("myTimetable") && cloudData.timetable) {
                             localStorage.setItem("myTimetable", JSON.stringify(cloudData.timetable));
                             localStorage.setItem("myHolidays", cloudData.holidays || "");
                             localStorage.setItem("termStartDate", cloudData.termStartDate || "");
-                            
-                            if(typeof loadSettings === "function") {
-                                loadSettings(); 
-                            }
-                            console.log("ક્લાઉડમાંથી તમારું ટાઈમટેબલ સફળતાપૂર્વક રિસ્ટોર થઈ ગયું છે!");
+                            if(typeof loadSettings === "function") loadSettings(); 
                         }
+                    } else {
+                        // જો યુઝર પહેલીવાર લોગિન કરે તો ડેટાબેઝમાં એન્ટ્રી બનાવવી
+                        window.currentUserData = { isPaid: false };
+                        await setDoc(userRef, { isPaid: false, name: user.displayName, email: user.email }, { merge: true });
                     }
                 } catch (error) {
                     console.error("ક્લાઉડમાંથી ડેટા લાવવામાં ભૂલ:", error);
@@ -644,28 +647,32 @@
             }
         });
 
+        // 👑 પ્રીમિયમ સ્ટેટસ ચેક કરવા માટેનું નવું ફંક્શન
+        window.checkPremiumAndDownload = function() {
+            // જો યુઝરનો ડેટા હોય અને તેમાં isPaid ની વેલ્યુ true હોય
+            if (window.currentUserData && window.currentUserData.isPaid === true) {
+                downloadPDF(); // અસલી PDF ડાઉનલોડ ફંક્શન ચલાવો
+            } else {
+                showPremiumModal(); // નહીંતર પેમેન્ટનું પોપઅપ બતાવો
+            }
+        };
+
         window.backupToFirebase = async function(dataToSave) {
             const user = auth.currentUser;
             if (user) {
                 try {
                     const userRef = doc(window.db, "users", user.uid);
                     await setDoc(userRef, dataToSave, { merge: true });
-                    console.log("ફાયરબેઝમાં બેકઅપ સફળ રહ્યો!");
                 } catch (error) {
                     console.error("ફાયરબેઝ બેકઅપ એરર:", error);
                 }
             }
         };
 
-        // રિફ્રેશ ફંક્શન
-        window.refreshPage = function() {
-            window.location.reload(true);
-        };
+        window.refreshPage = function() { window.location.reload(true); };
 
-        // અપડેટેડ લોગ આઉટ ફંક્શન (પૂછપરછ અને સ્ટોરેજ ક્લીનઅપ સાથે)
         window.logoutUser = function() {
-            let confirmLogout = confirm("શું તમે ખરેખર લોગ આઉટ થવા માંગો છો?");
-            if (confirmLogout) {
+            if (confirm("શું તમે ખરેખર લોગ આઉટ થવા માંગો છો?")) {
                 signOut(auth).then(() => {
                     localStorage.clear();
                     window.location.replace("login.html");
@@ -675,6 +682,3 @@
             }
         };
     </script>
-
-</body>
-</html>
