@@ -29,7 +29,7 @@
         .btn-search { background-color: var(--secondary-color); } .btn-search:hover { background-color: #0b686c; }
         .btn-pdf { background-color: #d32f2f; } .btn-pdf:hover { background-color: #9a0007; }
         .btn-save { background-color: #2e7d32; width: 100%; margin-top: 15px; font-size: 18px;}
-        .loading { text-align: center; font-size: 20px; color: var(--primary-color); display: none; font-weight: bold; margin: 20px 0; }
+        .loading { text-align: center; font-size: 18px; color: var(--primary-color); display: none; font-weight: bold; margin: 20px 0; }
         .empty-message { text-align: center; font-size: 20px; color: red; margin: 20px 0; font-weight: 700; }
         .success-message { text-align: center; font-size: 18px; color: green; font-weight: 700; margin-top: 10px; }
         .hidden { display: none !important; }
@@ -119,8 +119,9 @@
         </div>
     </div>
 
-    <div id="loading" class="loading">માસ્ટર ડેટા શોધાઈ રહ્યો છે... કૃપા કરીને રાહ જુઓ...</div>
-    <div id="emptyMessage" class="empty-message hidden">કોઈ રોજનીશી ઉપલબ્ધ નથી.</div>
+    <!-- ધીમા નેટવર્ક માટે ખાસ મેસેજ -->
+    <div id="loading" class="loading"></div>
+    <div id="emptyMessage" class="empty-message hidden"></div>
 
     <div class="preview-wrapper" id="previewWrapper">
         <div id="multiPageContainer" class="preview-scale"></div>
@@ -130,7 +131,8 @@
         window.jsPDF = window.jspdf.jsPDF;
         let currentMode = 'single';
         
-        const sheetURL = "https://script.google.com/macros/s/AKfycbwpnpWyIQEyIXUGMx3kVUfGZGf-6BH_6y3geTA50uzeq3L1gyNOdZab_oAXgdSDmtzx/exec";
+        // તમારી ગૂગલ શીટ લિંક
+        const sheetURL = "https://script.google.com/macros/s/AKfycbz3GI4edQ6MLq-ki7BHTqeovpxBDujBm1_RojTZjqNgn-yUqY2o3jbbaOi-LHQCUvhy/exec";
 
         const appConfig = { schoolName: 'શ્રી કોરાડા વાડી પ્રાથમિક શાળા', teacherName: 'પરબતભાઈ કરમુર' };
         const daysArr = ["સોમવાર", "મંગળવાર", "બુધવાર", "ગુરુવાર", "શુક્રવાર", "શનિવાર"];
@@ -179,7 +181,8 @@
             }
         }
 
-        function saveSettings() {
+        // નવી હાઇબ્રિડ સેવ સિસ્ટમ (Local + Firebase)
+        async function saveSettings() {
             let ttData = {};
             daysArr.forEach(day => {
                 ttData[day] = {};
@@ -192,13 +195,36 @@
                 }
             });
             
+            const holidays = document.getElementById('holidayInput').value;
+            const termStart = document.getElementById('termStartDate').value;
+
+            // ૧. હંમેશાની જેમ પહેલા લોકલ સ્ટોરેજમાં સેવ કરો (ઓફલાઇન સ્પીડ માટે)
             localStorage.setItem("myTimetable", JSON.stringify(ttData));
-            localStorage.setItem("myHolidays", document.getElementById('holidayInput').value);
-            localStorage.setItem("termStartDate", document.getElementById('termStartDate').value);
+            localStorage.setItem("myHolidays", holidays);
+            localStorage.setItem("termStartDate", termStart);
             
             let msg = document.getElementById('saveSuccess');
+            msg.innerText = "ડેટા ઓફલાઈન સેવ થઈ ગયો છે, ક્લાઉડ બેકઅપ લેવાઈ રહ્યો છે...";
+            msg.style.color = "blue";
             msg.classList.remove('hidden');
-            setTimeout(() => { msg.classList.add('hidden'); }, 3000);
+            
+            // ૨. ફાયરબેઝમાં કાયમી બેકઅપ (જો નેટવર્ક અને લોગિન હશે તો જ)
+            if (window.backupToFirebase) {
+                const backupData = {
+                    timetable: ttData,
+                    holidays: holidays,
+                    termStartDate: termStart,
+                    lastUpdated: new Date().toISOString()
+                };
+                await window.backupToFirebase(backupData);
+                msg.innerText = "સેટિંગ્સ સફળતાપૂર્વક કાયમ માટે સેવ થઈ ગયા!";
+                msg.style.color = "green";
+            } else {
+                msg.innerText = "સેટિંગ્સ માત્ર લોકલ સ્ટોરેજમાં સેવ થયા છે!";
+                msg.style.color = "green";
+            }
+
+            setTimeout(() => { msg.classList.add('hidden'); }, 4000);
         }
 
         function setMode(mode) {
@@ -251,7 +277,6 @@
             return String(d.getDate()).padStart(2,'0') + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + d.getFullYear();
         }
 
-        // નવું ફંક્શન: અંગ્રેજી ધોરણને ઓટોમેટિક ગુજરાતીમાં ફેરવશે
         function normalizeStd(stdStr) {
             if(!stdStr) return "";
             return String(stdStr).replace(/6/g, '૬').replace(/7/g, '૭').replace(/8/g, '૮').trim();
@@ -262,27 +287,32 @@
             let endVal = document.getElementById('endDate').value;
             let termStartVal = localStorage.getItem("termStartDate");
             let emptyMsg = document.getElementById('emptyMessage');
+            let loadingDiv = document.getElementById('loading');
 
             if(!termStartVal) { emptyMsg.innerText = "કૃપા કરીને પહેલા સેટિંગ્સમાં જઈને 'સત્ર શરૂ થયાની તારીખ' સેવ કરો."; emptyMsg.classList.remove('hidden'); return; }
             if(!startVal) { emptyMsg.innerText = "કૃપા કરીને તારીખ પસંદ કરો."; emptyMsg.classList.remove('hidden'); return; }
             if(currentMode === 'single') endVal = startVal; 
             else if(!endVal) { emptyMsg.innerText = "કૃપા કરીને અંતિમ તારીખ પસંદ કરો."; emptyMsg.classList.remove('hidden'); return; }
             
-            document.getElementById('loading').style.display = 'block';
+            loadingDiv.innerText = "માસ્ટર ડેટા શોધાઈ રહ્યો છે... (જો નેટવર્ક ધીમું હશે તો થોડી વાર લાગી શકે છે)";
+            loadingDiv.style.display = 'block';
             emptyMsg.classList.add('hidden');
             document.getElementById('multiPageContainer').innerHTML = "";
             document.getElementById('actionBtns').classList.add('hidden');
 
             try {
+                if (!navigator.onLine) {
+                    throw new Error("તમારો મોબાઈલ ઇન્ટરનેટ સાથે જોડાયેલો નથી. કૃપા કરીને ડેટા કે વાઈ-ફાઈ ચાલુ કરો.");
+                }
+
                 const response = await fetch(sheetURL);
-                if (!response.ok) throw new Error("ગૂગલ શીટ લિંક એરર");
+                if (!response.ok) throw new Error("ગૂગલ સર્વરનો સંપર્ક થઈ શક્યો નથી. થોડીવાર પછી ફરી પ્રયાસ કરો.");
                 const json = await response.json();
                 
                 if(!json.success) throw new Error(json.error);
                 
                 let masterDataMap = {};
                 json.data.forEach(row => {
-                    // અહીં અંગ્રેજી 6,7,8 ને ગુજરાતી ૬,૭,૮ માં ફેરવવામાં આવે છે
                     let nStd = normalizeStd(row["ધોરણ"]);
                     let nSub = (row["વિષય"] || "").trim();
                     let nSeq = (row["ક્રમ"] || "").toString().trim();
@@ -355,8 +385,14 @@
                 renderMultiplePages(groupedData);
 
             } catch (error) {
-                document.getElementById('loading').style.display = 'none';
-                emptyMsg.innerText = "એરર: " + error.message;
+                loadingDiv.style.display = 'none';
+                let errorMsg = error.message;
+                
+                if (errorMsg.includes("Failed to fetch") || errorMsg.includes("NetworkError")) {
+                    errorMsg = "ઇન્ટરનેટ કનેક્શન ખૂબ ધીમું છે અથવા નેટવર્ક નથી મળી રહ્યું. કૃપા કરીને થોડીવાર પછી ફરીથી પ્રયાસ કરો.";
+                }
+                
+                emptyMsg.innerText = "ભૂલ: " + errorMsg;
                 emptyMsg.classList.remove('hidden');
             }
         }
@@ -470,5 +506,80 @@
 
         window.onload = buildTimetableForm;
     </script>
-</body>
-</html>
+
+<!-- Firebase સિક્યોરિટી લોક અને ડેટાબેઝ કનેક્શન (અપડેટેડ Sync સાથે) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDY8EyUxzOivMNzTsaHV9M8EvF48nLlYAA",
+            authDomain: "dainikrojnishi.firebaseapp.com",
+            projectId: "dainikrojnishi",
+            storageBucket: "dainikrojnishi.firebasestorage.app",
+            messagingSenderId: "60107107456",
+            appId: "1:60107107456:web:fa958369acd57cdc900a65",
+            measurementId: "G-SSM6EX4LRM"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        window.db = getFirestore(app);
+
+        // સિક્યોરિટી લોક અને ક્લાઉડ સિંક (Cloud Sync)
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log("સ્વાગત છે:", user.displayName);
+                
+                // --- નવો કોડ: ફાયરબેઝમાંથી ડેટા પાછો લાવો ---
+                try {
+                    const userRef = doc(window.db, "users", user.uid);
+                    const docSnap = await getDoc(userRef);
+                    
+                    if (docSnap.exists()) {
+                        const cloudData = docSnap.data();
+                        
+                        // જો લોકલ સ્ટોરેજમાં ટાઈમટેબલ ન હોય (નવો મોબાઈલ હોય), તો ક્લાઉડમાંથી સેટ કરો
+                        if (!localStorage.getItem("myTimetable") && cloudData.timetable) {
+                            localStorage.setItem("myTimetable", JSON.stringify(cloudData.timetable));
+                            localStorage.setItem("myHolidays", cloudData.holidays || "");
+                            localStorage.setItem("termStartDate", cloudData.termStartDate || "");
+                            
+                            // ડેટા આવ્યા પછી UI માં દેખાડવા માટે ફંક્શન ફરી ચલાવો
+                            if(typeof loadSettings === "function") {
+                                loadSettings(); 
+                            }
+                            console.log("ક્લાઉડમાંથી તમારું ટાઈમટેબલ સફળતાપૂર્વક રિસ્ટોર થઈ ગયું છે!");
+                        }
+                    }
+                } catch (error) {
+                    console.error("ક્લાઉડમાંથી ડેટા લાવવામાં ભૂલ:", error);
+                }
+                // ------------------------------------------
+
+            } else {
+                window.location.replace("login.html");
+            }
+        });
+
+        // ડેટાબેઝમાં બેકઅપ લેવા માટેનું ફંક્શન
+        window.backupToFirebase = async function(dataToSave) {
+            const user = auth.currentUser;
+            if (user) {
+                try {
+                    const userRef = doc(window.db, "users", user.uid);
+                    await setDoc(userRef, dataToSave, { merge: true });
+                    console.log("ફાયરબેઝમાં બેકઅપ સફળ રહ્યો!");
+                } catch (error) {
+                    console.error("ફાયરબેઝ બેકઅપ એરર:", error);
+                }
+            }
+        };
+
+        window.logoutUser = function() {
+            signOut(auth).then(() => {
+                window.location.replace("login.html");
+            });
+        }
+    </script>
