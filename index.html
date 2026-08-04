@@ -130,6 +130,20 @@
             </div>
 
             <div id="settingsArea" class="hidden">
+                <!-- નવું પ્રોફાઇલ સેટિંગ્સ બોક્સ -->
+                <div class="settings-box" style="background: #fff3e0; border-color: #ffb74d;">
+                    <h3 style="margin-top:0; color: #e65100; margin-bottom: 15px;">તમારી પ્રોફાઇલ (PDF માટે)</h3>
+                    
+                    <label>શિક્ષકનું નામ:</label>
+                    <input type="text" id="profTeacherName" placeholder="દા.ત. પરબતભાઈ ટપુભાઈ કરમુર">
+                    
+                    <label>શાળાનું નામ:</label>
+                    <input type="text" id="profSchoolName" placeholder="દા.ત. શ્રી કોરાડા વાડી પ્રાથમિક શાળા">
+                    
+                    <label>સરનામું અને ડાયસ કોડ:</label>
+                    <input type="text" id="profAddress" placeholder="દા.ત. તા. કાલાવડ, જિ. જામનગર | ડાયસ: 2410...">
+                </div>
+
                 <div class="settings-box">
                     <label>સત્ર શરૂ થયાની તારીખ (Term Start Date):</label>
                     <input type="date" id="termStartDate">
@@ -183,9 +197,9 @@
         let currentMode = 'single';
         
         let appConfig = { 
-            schoolName: 'શાળાનું નામ (એડમિન દ્વારા બાકી છે)', 
+            schoolName: 'શાળાનું નામ (સેટિંગ્સમાં જઈને સેવ કરો)', 
             teacherName: 'શિક્ષકનું નામ', 
-            address: 'સરનામું અને ડાયસ કોડ (પેન્ડિંગ)' 
+            address: 'સરનામું અને ડાયસ કોડ' 
         };
 
         const daysArr = ["સોમવાર", "મંગળવાર", "બુધવાર", "ગુરુવાર", "શુક્રવાર", "શનિવાર"];
@@ -250,6 +264,16 @@
             const holidays = document.getElementById('holidayInput').value;
             const termStart = document.getElementById('termStartDate').value;
 
+            // પ્રોફાઇલ ડેટા લેવો
+            const pName = document.getElementById('profTeacherName').value;
+            const pSchool = document.getElementById('profSchoolName').value;
+            const pAddress = document.getElementById('profAddress').value;
+
+            // ડેટાને પીડીએફ પ્રિન્ટ માટે appConfig માં સેટ કરવો
+            appConfig.teacherName = pName || 'શિક્ષકનું નામ';
+            appConfig.schoolName = pSchool || 'શાળાનું નામ (સેટિંગ્સમાં જઈને સેવ કરો)';
+            appConfig.address = pAddress || 'સરનામું અને ડાયસ કોડ';
+
             localStorage.setItem("myTimetable", JSON.stringify(ttData));
             localStorage.setItem("myHolidays", holidays);
             localStorage.setItem("termStartDate", termStart);
@@ -261,13 +285,16 @@
             
             if (window.backupToFirebase) {
                 const backupData = {
+                    name: pName,
+                    schoolName: pSchool,
+                    address: pAddress,
                     timetable: ttData,
                     holidays: holidays,
                     termStartDate: termStart,
                     lastUpdated: new Date().toISOString()
                 };
                 await window.backupToFirebase(backupData);
-                msg.innerText = "સેટિંગ્સ સફળતાપૂર્વક કાયમ માટે સેવ થઈ ગયા!";
+                msg.innerText = "પ્રોફાઇલ અને સેટિંગ્સ સફળતાપૂર્વક કાયમ માટે સેવ થઈ ગયા!";
                 msg.style.color = "green";
             } else {
                 msg.innerText = "સેટિંગ્સ માત્ર લોકલ સ્ટોરેજમાં સેવ થયા છે!";
@@ -350,7 +377,6 @@
                     throw new Error("તમારો મોબાઈલ ઇન્ટરનેટ સાથે જોડાયેલો નથી.");
                 }
 
-                // હવે ડેટા ફાયરબેઝમાંથી આવશે (ગૂગલ શીટ કાઢી નાખી છે)
                 let masterDataMap = await window.getMasterData();
 
                 if (Object.keys(masterDataMap).length === 0) {
@@ -578,7 +604,6 @@
         const auth = getAuth(app);
         window.db = getFirestore(app);
 
-        // માસ્ટર ડેટા ખેંચવાનું નવું પાવરફુલ ફંક્શન
         window.getMasterData = async function() {
             const querySnapshot = await getDocs(collection(window.db, "masterData"));
             let masterDataMap = {};
@@ -587,7 +612,6 @@
                 const data = docSnap.data();
                 let key = `${data.std}_${data.sub}_${data.seq}`;
                 
-                // ફાયરબેઝના ડેટાને એપના જૂના ગુજરાતી ફોર્મેટમાં મેચ કરે છે
                 masterDataMap[key] = {
                     "ધોરણ": data.std,
                     "વિષય": data.sub,
@@ -619,9 +643,15 @@
 
                         window.currentUserData = cloudData; 
                         
-                        appConfig.teacherName = cloudData.name || user.displayName || 'શિક્ષકનું નામ';
-                        appConfig.schoolName = cloudData.schoolName || 'શાળાનું નામ (એડમિન દ્વારા બાકી છે)';
-                        appConfig.address = cloudData.address || 'સરનામું અને ડાયસ કોડ (પેન્ડિંગ)';
+                        // ફાયરબેઝમાંથી પ્રોફાઇલ ડેટા લેવો
+                        appConfig.teacherName = cloudData.name || user.displayName || '';
+                        appConfig.schoolName = cloudData.schoolName || '';
+                        appConfig.address = cloudData.address || '';
+                        
+                        // સેટિંગ્સ ફોર્મમાં ડેટા ભરવો
+                        document.getElementById('profTeacherName').value = appConfig.teacherName;
+                        document.getElementById('profSchoolName').value = appConfig.schoolName;
+                        document.getElementById('profAddress').value = appConfig.address;
                         
                         if (!localStorage.getItem("myTimetable") && cloudData.timetable) {
                             localStorage.setItem("myTimetable", JSON.stringify(cloudData.timetable));
@@ -631,7 +661,8 @@
                         }
                     } else {
                         window.currentUserData = { isPaid: false };
-                        appConfig.teacherName = user.displayName || 'શિક્ષકનું નામ';
+                        appConfig.teacherName = user.displayName || '';
+                        document.getElementById('profTeacherName').value = appConfig.teacherName;
                         await setDoc(userRef, { isPaid: false, name: user.displayName, email: user.email }, { merge: true });
                     }
                 } catch (error) {
