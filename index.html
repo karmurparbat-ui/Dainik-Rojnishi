@@ -578,7 +578,7 @@
         };
     </script>
 
-    <!-- નવો અને એરર ફ્રી ફાયરબેઝ કોડ -->
+<!-- નવો અને એરર ફ્રી ફાયરબેઝ કોડ (Space Fixer સાથે) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
@@ -600,13 +600,19 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                console.log("સ્વાગત છે:", user.displayName);
                 try {
                     const userRef = doc(window.db, "users", user.uid);
                     const docSnap = await getDoc(userRef);
                     
                     if (docSnap.exists()) {
-                        const cloudData = docSnap.data();
+                        const rawData = docSnap.data();
+                        
+                        // જો ફાયરબેઝમાં ફીલ્ડના નામમાં અજાણતા સ્પેસ રહી ગઈ હોય તો તેને સુધારવાનો કોડ
+                        const cloudData = {};
+                        for (let key in rawData) {
+                            cloudData[key.trim()] = rawData[key];
+                        }
+
                         window.currentUserData = cloudData; 
                         
                         // ફાયરબેઝમાંથી શાળાનું નામ, સરનામું અને શિક્ષકનું નામ લેવું
