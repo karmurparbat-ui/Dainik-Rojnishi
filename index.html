@@ -17,7 +17,6 @@
         *, *::before, *::after { box-sizing: border-box; }
         body { font-family: 'Rasa', 'Nirmala UI', 'Shruti', serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-color); display: flex; flex-direction: column; min-height: 100vh; }
         
-        /* નવું હેડર અને બટન્સ માટે CSS */
         .app-header { background-color: var(--primary-color); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); margin-bottom: 20px; }
         .header-title { font-size: 24px; font-weight: bold; }
         .header-buttons { display: flex; gap: 10px; }
@@ -27,7 +26,6 @@
         .btn-logout { background-color: #d32f2f; color: white; }
         .btn-logout:hover { background-color: #b71c1c; }
 
-        /* નવું ફૂટર માટે CSS */
         .app-footer { background-color: #0b4c6c; color: white; text-align: center; padding: 15px; margin-top: auto; }
         .app-footer h3 { margin: 0; font-size: 20px; }
         .app-footer p { margin: 5px 0 0 0; font-size: 16px; }
@@ -51,11 +49,9 @@
         .success-message { text-align: center; font-size: 18px; color: green; font-weight: 700; margin-top: 10px; }
         .hidden { display: none !important; }
 
-        /* પ્રીમિયમ મોડલ (પોપઅપ) સ્ટાઈલ */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; display: flex; }
         .modal-box { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
-        /* Settings Area */
         #settingsArea { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
         .day-block { margin-bottom: 20px; background: white; padding: 10px; border-radius: 6px; border-left: 5px solid var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .day-title { font-size: 20px; font-weight: bold; color: var(--primary-color); margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;}
@@ -66,7 +62,6 @@
         .settings-box label { font-weight: bold; color: #1565c0; display: block; margin-bottom: 5px; }
         .settings-box input { width: 100%; margin-bottom: 10px; }
 
-        /* Print & PDF */
         .preview-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 20px; }
         .preview-scale { transform: scale(0.40); transform-origin: top left; margin-bottom: -55%; }
         #multiPageContainer { display: flex; flex-direction: column; gap: 40px; align-items: flex-start; width: 3200px; }
@@ -101,7 +96,6 @@
 </head>
 <body>
 
-    <!-- નવું હેડર અને બટન્સ -->
     <div class="app-header">
         <div class="header-title">દૈનિક રોજનીશી</div>
         <div class="header-buttons">
@@ -131,7 +125,6 @@
                     <button class="main-btn btn-search" onclick="fetchData()">માહિતી મેળવો</button>
                 </div>
                 <div class="action-btns hidden" id="actionBtns">
-                    <!-- PDF ડાઉનલોડ બટનને હાલ પૂરતું પ્રીમિયમ પોપઅપ સાથે લિંક કર્યું છે -->
                    <button class="main-btn btn-pdf" id="btnPdf" onclick="checkPremiumAndDownload()">PDF ડાઉનલોડ કરો</button>
                 </div>
             </div>
@@ -141,7 +134,7 @@
                     <label>સત્ર શરૂ થયાની તારીખ (Term Start Date):</label>
                     <input type="date" id="termStartDate">
                     
-                    <label style="color: #d32f2f; margin-top:10px;">રજાઓની તારીખ (DD-MM-YYYY ફોર્મેટમાં, અલ્પવિરામથી અલગ કરો. દા.ત. 15-08-2024, 19-08-2024):</label>
+                    <label style="color: #d32f2f; margin-top:10px;">રજાઓની તારીખ (DD-MM-YYYY ફોર્મેટમાં, અલ્પવિરામથી અલગ કરો):</label>
                     <input type="text" id="holidayInput" placeholder="અહીં રજાઓ લખો...">
                 </div>
                 <h3 style="text-align:center; color: var(--primary-color);">તમારું સાપ્તાહિક ટાઈમટેબલ ગોઠવો</h3>
@@ -159,7 +152,7 @@
         </div>
     </div>
 
-    <!-- પ્રીમિયમ મોડલ (પોપઅપ) -->
+    <!-- પ્રીમિયમ મોડલ -->
     <div id="premiumModal" class="modal-overlay hidden">
         <div class="modal-box">
             <h2 style="color:#1a5f7a; margin-top:0;">👑 પ્રીમિયમ વર્ઝન</h2>
@@ -167,10 +160,7 @@
             
             <div style="background:#f0f2f5; padding:15px; border-radius:8px; margin:15px 0;">
                 <h3 style="margin:0; color:#333;">વાર્ષિક લવાજમ: ₹૨૯૯</h3>
-                
-                <!-- અહી qrcode.jpg નામથી ફોટો લિંક કરેલ છે -->
                 <img src="qrcode.jpg" alt="UPI QR Code" style="width:160px; height:160px; border:2px solid #ccc; border-radius:10px; margin:10px 0;">
-                
                 <p style="font-weight:bold; margin:0; font-size:18px; color:#1a5f7a;">UPI ID: karmurparbat-1@oksbi</p>
             </div>
             
@@ -183,7 +173,6 @@
         </div>
     </div>
 
-    <!-- નવું ફૂટર -->
     <div class="app-footer">
         <h3>પરબતભાઈ કરમુર</h3>
         <p>શ્રી કોરાડા વાડી પ્રાથમિક શાળા</p>
@@ -196,10 +185,11 @@
         const sheetURL = "https://script.google.com/macros/s/AKfycbz3GI4edQ6MLq-ki7BHTqeovpxBDujBm1_RojTZjqNgn-yUqY2o3jbbaOi-LHQCUvhy/exec";
 
         let appConfig = { 
-    schoolName: 'તમારી શાળાનું નામ', 
-    teacherName: 'શિક્ષકનું નામ', 
-    address: 'શાળાનું સરનામું અને ડાયસ કોડ' 
-};
+            schoolName: 'શાળાનું નામ (એડમિન દ્વારા બાકી છે)', 
+            teacherName: 'શિક્ષકનું નામ', 
+            address: 'સરનામું અને ડાયસ કોડ (પેન્ડિંગ)' 
+        };
+
         const daysArr = ["સોમવાર", "મંગળવાર", "બુધવાર", "ગુરુવાર", "શુક્રવાર", "શનિવાર"];
         const dayNamesFull = ["રવિવાર", "સોમવાર", "મંગળવાર", "બુધવાર", "ગુરુવાર", "શુક્રવાર", "શનિવાર"];
         const standards = ["-", "૬", "૭", "૮"];
@@ -378,7 +368,6 @@
                     let nStd = normalizeStd(row["ધોરણ"]);
                     let nSub = (row["વિષય"] || "").trim();
                     let nSeq = (row["ક્રમ"] || "").toString().trim();
-                    
                     let key = `${nStd}_${nSub}_${nSeq}`;
                     masterDataMap[key] = row;
                 });
@@ -453,7 +442,6 @@
                 if (errorMsg.includes("Failed to fetch") || errorMsg.includes("NetworkError")) {
                     errorMsg = "ઇન્ટરનેટ કનેક્શન ખૂબ ધીમું છે અથવા નેટવર્ક નથી મળી રહ્યું. કૃપા કરીને થોડીવાર પછી ફરીથી પ્રયાસ કરો.";
                 }
-                
                 emptyMsg.innerText = "ભૂલ: " + errorMsg;
                 emptyMsg.classList.remove('hidden');
             }
@@ -545,9 +533,8 @@
             let pdf = null;
 
             for (let i = 0; i < pages.length; i++) {
-// સ્કેલ 1.5 થી ઘટાડીને 1.0 કર્યો છે અને ક્વોલિટી 100% (1.0) થી ઘટાડીને 60% (0.6) કરી છે
-let canvas = await html2canvas(pages[i], { scale: 1.0, useCORS: true, logging: false, backgroundColor: "#ffffff" });
-let imgData = canvas.toDataURL('image/jpeg', 0.6);
+                let canvas = await html2canvas(pages[i], { scale: 1.0, useCORS: true, logging: false, backgroundColor: "#ffffff" });
+                let imgData = canvas.toDataURL('image/jpeg', 0.6);
                 let pdfHeight = (canvas.height * pdfWidth) / canvas.width; 
                 let orientation = pdfWidth > pdfHeight ? 'l' : 'p';
                 if (i === 0) pdf = new jsPDF(orientation, 'mm', [pdfWidth, pdfHeight]);
@@ -567,38 +554,31 @@ let imgData = canvas.toDataURL('image/jpeg', 0.6);
             btn.disabled = false;
         }
 
-        // આજની તારીખ આપમેળે સેટ કરવા અને ટાઈમટેબલ લોડ કરવા માટેનો સુધારેલો કોડ
         window.onload = function() {
             buildTimetableForm();
-            
             let today = new Date();
             let dd = String(today.getDate()).padStart(2, '0');
             let mm = String(today.getMonth() + 1).padStart(2, '0'); 
             let yyyy = today.getFullYear();
-            
             let todayStr = yyyy + '-' + mm + '-' + dd;
             document.getElementById('startDate').value = todayStr;
         };
 
-        // પ્રીમિયમ મોડલ (પોપઅપ) ખોલવા-બંધ કરવા અને WhatsApp મેસેજ માટેના ફંક્શન
         window.showPremiumModal = function() {
             document.getElementById("premiumModal").classList.remove("hidden");
         };
-
         window.closePremiumModal = function() {
             document.getElementById("premiumModal").classList.add("hidden");
         };
-
         window.sendWhatsApp = function() {
-            let myNumber = "919586311704"; // તમારો સાચો મોબાઈલ નંબર 91 સાથે અહીં લખજો
+            let myNumber = "919586311704"; 
             let msg = "નમસ્તે પરબતભાઈ, મેં 'દૈનિક રોજનીશી' એપના પ્રીમિયમ વર્ઝન (₹૨૯૯) માટે પેમેન્ટ કર્યું છે. મારો સ્ક્રીનશોટ આ સાથે મોકલું છું.";
             let waLink = "https://wa.me/" + myNumber + "?text=" + encodeURIComponent(msg);
             window.open(waLink, "_blank");
         };
-
     </script>
 
-<!-- Firebase સિક્યોરિટી લોક અને ડેટાબેઝ કનેક્શન -->
+    <!-- નવો અને એરર ફ્રી ફાયરબેઝ કોડ -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
@@ -618,26 +598,22 @@ let imgData = canvas.toDataURL('image/jpeg', 0.6);
         const auth = getAuth(app);
         window.db = getFirestore(app);
 
-        // સિક્યોરિટી લોક અને ડેટાબેઝ ફેચિંગ
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 console.log("સ્વાગત છે:", user.displayName);
-                
                 try {
                     const userRef = doc(window.db, "users", user.uid);
                     const docSnap = await getDoc(userRef);
                     
                     if (docSnap.exists()) {
-    const cloudData = docSnap.data();
-    window.currentUserData = cloudData; 
-    
-    // ફાયરબેઝમાંથી ડેટા સેટ કરવો (જો ડેટાબેઝમાં ન હોય તો ગૂગલ એકાઉન્ટનું નામ લેવું)
-    appConfig.teacherName = cloudData.name || user.displayName || 'શિક્ષકનું નામ';
-    appConfig.schoolName = cloudData.schoolName || 'શાળાનું નામ';
-    appConfig.address = cloudData.address || 'સરનામું અને ડાયસ કોડ';
-    
-    console.log("ફાયરબેઝ ડેટા લોડ થયો:", appConfig);
-}
+                        const cloudData = docSnap.data();
+                        window.currentUserData = cloudData; 
+                        
+                        // ફાયરબેઝમાંથી શાળાનું નામ, સરનામું અને શિક્ષકનું નામ લેવું
+                        appConfig.teacherName = cloudData.name || user.displayName || 'શિક્ષકનું નામ';
+                        appConfig.schoolName = cloudData.schoolName || 'શાળાનું નામ (એડમિન દ્વારા બાકી છે)';
+                        appConfig.address = cloudData.address || 'સરનામું અને ડાયસ કોડ (પેન્ડિંગ)';
+                        
                         if (!localStorage.getItem("myTimetable") && cloudData.timetable) {
                             localStorage.setItem("myTimetable", JSON.stringify(cloudData.timetable));
                             localStorage.setItem("myHolidays", cloudData.holidays || "");
@@ -645,8 +621,8 @@ let imgData = canvas.toDataURL('image/jpeg', 0.6);
                             if(typeof loadSettings === "function") loadSettings(); 
                         }
                     } else {
-                        // જો યુઝર પહેલીવાર લોગિન કરે તો ડેટાબેઝમાં એન્ટ્રી બનાવવી
                         window.currentUserData = { isPaid: false };
+                        appConfig.teacherName = user.displayName || 'શિક્ષકનું નામ';
                         await setDoc(userRef, { isPaid: false, name: user.displayName, email: user.email }, { merge: true });
                     }
                 } catch (error) {
@@ -657,13 +633,12 @@ let imgData = canvas.toDataURL('image/jpeg', 0.6);
             }
         });
 
-        // 👑 પ્રીમિયમ સ્ટેટસ ચેક કરવા માટેનું નવું ફંક્શન
+        // પીડીએફ બટન માટેનું પાવરફુલ ફંક્શન
         window.checkPremiumAndDownload = function() {
-            // જો યુઝરનો ડેટા હોય અને તેમાં isPaid ની વેલ્યુ true હોય
             if (window.currentUserData && window.currentUserData.isPaid === true) {
-                downloadPDF(); // અસલી PDF ડાઉનલોડ ફંક્શન ચલાવો
+                downloadPDF(); 
             } else {
-                showPremiumModal(); // નહીંતર પેમેન્ટનું પોપઅપ બતાવો
+                showPremiumModal(); 
             }
         };
 
@@ -692,3 +667,5 @@ let imgData = canvas.toDataURL('image/jpeg', 0.6);
             }
         };
     </script>
+</body>
+</html>
