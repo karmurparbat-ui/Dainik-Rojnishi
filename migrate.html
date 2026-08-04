@@ -11,7 +11,8 @@
         button { background-color: #0e8388; color: white; border: none; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         button:hover { background-color: #0b686c; }
         button:disabled { background-color: #ccc; cursor: not-allowed; }
-        #status { margin-top: 20px; font-size: 18px; font-weight: bold; color: #333; }
+        #status { margin-top: 20px; font-size: 18px; font-weight: bold; color: #333; line-height: 1.5; }
+        .error-box { background: #ffebee; color: #c62828; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 14px; text-align: left; overflow-x: auto; border: 1px solid #ef9a9a;}
     </style>
 </head>
 <body>
@@ -52,25 +53,30 @@
             statusDiv.innerHTML = "૧. ગૂગલ શીટમાંથી ડેટા ડાઉનલોડ થઈ રહ્યો છે... ⏳";
 
             try {
-                // ગૂગલ શીટમાંથી ડેટા લાવવો
-                const response = await fetch(sheetURL);
-                const json = await response.json();
+                // પહેલા ડેટાને text તરીકે ખેંચીએ જેથી જો એરર હોય તો પકડી શકાય
+                const response = await fetch(sheetURL, { redirect: "follow" });
+                const textData = await response.text();
                 
-                if (!json.success) throw new Error("ગૂગલ શીટમાંથી ડેટા ન મળ્યો!");
+                let json;
+                try {
+                    json = JSON.parse(textData);
+                } catch (parseError) {
+                    throw new Error("ગૂગલ સર્વરે ડેટાને બદલે વેબ પેજ મોકલ્યું છે. કૃપા કરીને ગૂગલ શીટમાં જઈને Apps Script ફરીથી 'New Version' અને 'Anyone' સાથે Deploy કરો.<br><br><b>સર્વરનો જવાબ:</b><br><div class='error-box'>" + textData.substring(0, 300).replace(/</g, "&lt;").replace(/>/g, "&gt;") + "...</div>");
+                }
+                
+                if (!json.success) throw new Error("ગૂગલ શીટમાંથી ડેટા ન મળ્યો! " + (json.error || ""));
                 
                 const dataArray = json.data;
                 statusDiv.innerHTML = `૨. ડેટા ડાઉનલોડ થઈ ગયો! કુલ <b>${dataArray.length}</b> એન્ટ્રી મળી છે. <br> ફાયરબેઝમાં અપલોડ શરૂ થાય છે... ⏳`;
 
                 let count = 0;
 
-                // ડેટાને ફાયરબેઝમાં લૂપ ચલાવીને સેવ કરવો
                 for (let row of dataArray) {
                     let std = String(row["ધોરણ"]).replace(/6/g, '૬').replace(/7/g, '૭').replace(/8/g, '૮').trim();
                     let sub = (row["વિષય"] || "").trim();
                     let seq = (row["ક્રમ"] || "").toString().trim();
                     
                     if(std && sub && seq) {
-                        // ડેટાબેઝમાં ડોક્યુમેન્ટનું નામ (દા.ત. "૬_ગુજરાતી_1")
                         let docId = `${std}_${sub}_${seq}`;
                         
                         await setDoc(doc(db, "masterData", docId), {
@@ -86,19 +92,18 @@
                         });
                         count++;
                         
-                        // દર 50 એન્ટ્રીએ સ્ક્રીન પર અપડેટ આપવું
                         if(count % 50 === 0) {
                             statusDiv.innerHTML = `અપલોડ ચાલુ છે... <b>${count}</b> / ${dataArray.length} એન્ટ્રી સેવ થઈ. ⏳`;
                         }
                     }
                 }
 
-                statusDiv.innerHTML = `✅ <b>અભિનંદન!</b> બધો ડેટા (${count} એન્ટ્રી) સફળતાપૂર્વક ફાયરબેઝમાં અપલોડ થઈ ગયો છે!`;
+                statusDiv.innerHTML = `✅ <b>અભિનંદન!</b> બધો ડેટા (${count} એન્ટ્રી) સફળતાપૂર્વક ફાયરબેઝમાં અપલોડ થઈ ગયો છે! હવે આપણે ફાઈનલ એપ અપડેટ કરી શકીએ છીએ.`;
                 statusDiv.style.color = "green";
 
             } catch (error) {
                 console.error(error);
-                statusDiv.innerHTML = "❌ ભૂલ આવી: " + error.message;
+                statusDiv.innerHTML = "❌ ભૂલ આવી: <br>" + error.message;
                 statusDiv.style.color = "red";
                 btn.disabled = false;
             }
