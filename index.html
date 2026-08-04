@@ -182,8 +182,6 @@
         window.jsPDF = window.jspdf.jsPDF;
         let currentMode = 'single';
         
-        const sheetURL = "https://script.google.com/macros/s/AKfycbz3GI4edQ6MLq-ki7BHTqeovpxBDujBm1_RojTZjqNgn-yUqY2o3jbbaOi-LHQCUvhy/exec";
-
         let appConfig = { 
             schoolName: 'શાળાનું નામ (એડમિન દ્વારા બાકી છે)', 
             teacherName: 'શિક્ષકનું નામ', 
@@ -329,11 +327,6 @@
             return String(d.getDate()).padStart(2,'0') + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + d.getFullYear();
         }
 
-        function normalizeStd(stdStr) {
-            if(!stdStr) return "";
-            return String(stdStr).replace(/6/g, '૬').replace(/7/g, '૭').replace(/8/g, '૮').trim();
-        }
-
         async function fetchData() {
             let startVal = document.getElementById('startDate').value;
             let endVal = document.getElementById('endDate').value;
@@ -346,7 +339,7 @@
             if(currentMode === 'single') endVal = startVal; 
             else if(!endVal) { emptyMsg.innerText = "કૃપા કરીને અંતિમ તારીખ પસંદ કરો."; emptyMsg.classList.remove('hidden'); return; }
             
-            loadingDiv.innerText = "માસ્ટર ડેટા શોધાઈ રહ્યો છે... (જો નેટવર્ક ધીમું હશે તો થોડી વાર લાગી શકે છે)";
+            loadingDiv.innerText = "ફાયરબેઝમાંથી ડેટા લાવવામાં આવી રહ્યો છે... પલકારામાં! ⚡";
             loadingDiv.style.display = 'block';
             emptyMsg.classList.add('hidden');
             document.getElementById('multiPageContainer').innerHTML = "";
@@ -354,23 +347,15 @@
 
             try {
                 if (!navigator.onLine) {
-                    throw new Error("તમારો મોબાઈલ ઇન્ટરનેટ સાથે જોડાયેલો નથી. કૃપા કરીને ડેટા કે વાઈ-ફાઈ ચાલુ કરો.");
+                    throw new Error("તમારો મોબાઈલ ઇન્ટરનેટ સાથે જોડાયેલો નથી.");
                 }
 
-                const response = await fetch(sheetURL);
-                if (!response.ok) throw new Error("ગૂગલ સર્વરનો સંપર્ક થઈ શક્યો નથી. થોડીવાર પછી ફરી પ્રયાસ કરો.");
-                const json = await response.json();
-                
-                if(!json.success) throw new Error(json.error);
-                
-                let masterDataMap = {};
-                json.data.forEach(row => {
-                    let nStd = normalizeStd(row["ધોરણ"]);
-                    let nSub = (row["વિષય"] || "").trim();
-                    let nSeq = (row["ક્રમ"] || "").toString().trim();
-                    let key = `${nStd}_${nSub}_${nSeq}`;
-                    masterDataMap[key] = row;
-                });
+                // હવે ડેટા ફાયરબેઝમાંથી આવશે (ગૂગલ શીટ કાઢી નાખી છે)
+                let masterDataMap = await window.getMasterData();
+
+                if (Object.keys(masterDataMap).length === 0) {
+                    throw new Error("ફાયરબેઝ ડેટાબેઝ ખાલી છે! કૃપા કરીને પહેલા માઈગ્રેટ ટૂલ ચલાવો.");
+                }
 
                 let [ty, tm, td] = termStartVal.split('-');
                 let tStart = new Date(ty, tm-1, td);
@@ -437,12 +422,7 @@
 
             } catch (error) {
                 loadingDiv.style.display = 'none';
-                let errorMsg = error.message;
-                
-                if (errorMsg.includes("Failed to fetch") || errorMsg.includes("NetworkError")) {
-                    errorMsg = "ઇન્ટરનેટ કનેક્શન ખૂબ ધીમું છે અથવા નેટવર્ક નથી મળી રહ્યું. કૃપા કરીને થોડીવાર પછી ફરીથી પ્રયાસ કરો.";
-                }
-                emptyMsg.innerText = "ભૂલ: " + errorMsg;
+                emptyMsg.innerText = "ભૂલ: " + error.message;
                 emptyMsg.classList.remove('hidden');
             }
         }
@@ -578,11 +558,11 @@
         };
     </script>
 
-<!-- નવો અને એરર ફ્રી ફાયરબેઝ કોડ (Space Fixer સાથે) -->
+<!-- ફાયરબેઝ કનેક્શન અને માસ્ટર ડેટા ફેચ સ્ક્રિપ્ટ -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDY8EyUxzOivMNzTsaHV9M8EvF48nLlYAA",
@@ -598,6 +578,31 @@
         const auth = getAuth(app);
         window.db = getFirestore(app);
 
+        // માસ્ટર ડેટા ખેંચવાનું નવું પાવરફુલ ફંક્શન
+        window.getMasterData = async function() {
+            const querySnapshot = await getDocs(collection(window.db, "masterData"));
+            let masterDataMap = {};
+            
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                let key = `${data.std}_${data.sub}_${data.seq}`;
+                
+                // ફાયરબેઝના ડેટાને એપના જૂના ગુજરાતી ફોર્મેટમાં મેચ કરે છે
+                masterDataMap[key] = {
+                    "ધોરણ": data.std,
+                    "વિષય": data.sub,
+                    "ક્રમ": data.seq,
+                    "એકમ": data.chapter || "",
+                    "અધ્યયન નિષ્પતિ": data.learningOutcome || "",
+                    "શૈક્ષણિક મુદ્દા": data.points || "",
+                    "શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ": data.activity || "",
+                    "સ્વ.અધ્યયન/સંદર્ભ સાહિત્ય": data.reference || "",
+                    "મૂલ્યાંકન/ગૃહકાર્ય": data.hw || ""
+                };
+            });
+            return masterDataMap;
+        };
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
@@ -607,7 +612,6 @@
                     if (docSnap.exists()) {
                         const rawData = docSnap.data();
                         
-                        // જો ફાયરબેઝમાં ફીલ્ડના નામમાં અજાણતા સ્પેસ રહી ગઈ હોય તો તેને સુધારવાનો કોડ
                         const cloudData = {};
                         for (let key in rawData) {
                             cloudData[key.trim()] = rawData[key];
@@ -615,7 +619,6 @@
 
                         window.currentUserData = cloudData; 
                         
-                        // ફાયરબેઝમાંથી શાળાનું નામ, સરનામું અને શિક્ષકનું નામ લેવું
                         appConfig.teacherName = cloudData.name || user.displayName || 'શિક્ષકનું નામ';
                         appConfig.schoolName = cloudData.schoolName || 'શાળાનું નામ (એડમિન દ્વારા બાકી છે)';
                         appConfig.address = cloudData.address || 'સરનામું અને ડાયસ કોડ (પેન્ડિંગ)';
@@ -639,7 +642,6 @@
             }
         });
 
-        // પીડીએફ બટન માટેનું પાવરફુલ ફંક્શન
         window.checkPremiumAndDownload = function() {
             if (window.currentUserData && window.currentUserData.isPaid === true) {
                 downloadPDF(); 
