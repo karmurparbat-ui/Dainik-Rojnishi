@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ડેટા શિફ્ટ કરો (Google Sheet to Firebase)</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f0f2f5; padding: 50px; }
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+        h1 { color: #1a5f7a; }
+        button { background-color: #0e8388; color: white; border: none; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        button:hover { background-color: #0b686c; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        #status { margin-top: 20px; font-size: 18px; font-weight: bold; color: #333; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>માસ્ટર ડેટા ટ્રાન્સફર ટૂલ</h1>
+        <p>આ ટૂલ તમારી ગૂગલ શીટમાંથી ડેટા લઈને ફાયરબેઝમાં <b>masterData</b> નામના કલેક્શનમાં સેવ કરશે.</p>
+        <button id="startBtn">🚀 ડેટા શિફ્ટ કરવાનું શરૂ કરો</button>
+        <div id="status"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+
+        // તમારું ફાયરબેઝ કનેક્શન
+        const firebaseConfig = {
+            apiKey: "AIzaSyDY8EyUxzOivMNzTsaHV9M8EvF48nLlYAA",
+            authDomain: "dainikrojnishi.firebaseapp.com",
+            projectId: "dainikrojnishi",
+            storageBucket: "dainikrojnishi.firebasestorage.app",
+            messagingSenderId: "60107107456",
+            appId: "1:60107107456:web:fa958369acd57cdc900a65",
+            measurementId: "G-SSM6EX4LRM"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // તમારી ગૂગલ શીટની લિંક
+        const sheetURL = "https://script.google.com/macros/s/AKfycbz3GI4edQ6MLq-ki7BHTqeovpxBDujBm1_RojTZjqNgn-yUqY2o3jbbaOi-LHQCUvhy/exec";
+
+        document.getElementById('startBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('startBtn');
+            const statusDiv = document.getElementById('status');
+            
+            btn.disabled = true;
+            statusDiv.innerHTML = "૧. ગૂગલ શીટમાંથી ડેટા ડાઉનલોડ થઈ રહ્યો છે... ⏳";
+
+            try {
+                // ગૂગલ શીટમાંથી ડેટા લાવવો
+                const response = await fetch(sheetURL);
+                const json = await response.json();
+                
+                if (!json.success) throw new Error("ગૂગલ શીટમાંથી ડેટા ન મળ્યો!");
+                
+                const dataArray = json.data;
+                statusDiv.innerHTML = `૨. ડેટા ડાઉનલોડ થઈ ગયો! કુલ <b>${dataArray.length}</b> એન્ટ્રી મળી છે. <br> ફાયરબેઝમાં અપલોડ શરૂ થાય છે... ⏳`;
+
+                let count = 0;
+
+                // ડેટાને ફાયરબેઝમાં લૂપ ચલાવીને સેવ કરવો
+                for (let row of dataArray) {
+                    let std = String(row["ધોરણ"]).replace(/6/g, '૬').replace(/7/g, '૭').replace(/8/g, '૮').trim();
+                    let sub = (row["વિષય"] || "").trim();
+                    let seq = (row["ક્રમ"] || "").toString().trim();
+                    
+                    if(std && sub && seq) {
+                        // ડેટાબેઝમાં ડોક્યુમેન્ટનું નામ (દા.ત. "૬_ગુજરાતી_1")
+                        let docId = `${std}_${sub}_${seq}`;
+                        
+                        await setDoc(doc(db, "masterData", docId), {
+                            std: std,
+                            sub: sub,
+                            seq: seq,
+                            chapter: row["એકમ"] || "",
+                            learningOutcome: row["અધ્યયન નિષ્પતિ"] || "",
+                            points: row["શૈક્ષણિક મુદ્દા"] || "",
+                            activity: row["શિક્ષક-વિદ્યાર્થી પ્રવૃત્તિ"] || "",
+                            reference: row["સ્વ.અધ્યયન/સંદર્ભ સાહિત્ય"] || "",
+                            hw: row["મૂલ્યાંકન/ગૃહકાર્ય"] || ""
+                        });
+                        count++;
+                        
+                        // દર 50 એન્ટ્રીએ સ્ક્રીન પર અપડેટ આપવું
+                        if(count % 50 === 0) {
+                            statusDiv.innerHTML = `અપલોડ ચાલુ છે... <b>${count}</b> / ${dataArray.length} એન્ટ્રી સેવ થઈ. ⏳`;
+                        }
+                    }
+                }
+
+                statusDiv.innerHTML = `✅ <b>અભિનંદન!</b> બધો ડેટા (${count} એન્ટ્રી) સફળતાપૂર્વક ફાયરબેઝમાં અપલોડ થઈ ગયો છે!`;
+                statusDiv.style.color = "green";
+
+            } catch (error) {
+                console.error(error);
+                statusDiv.innerHTML = "❌ ભૂલ આવી: " + error.message;
+                statusDiv.style.color = "red";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
