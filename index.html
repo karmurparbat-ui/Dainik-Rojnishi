@@ -541,8 +541,9 @@
             let pdf = null;
 
             for (let i = 0; i < pages.length; i++) {
-                let canvas = await html2canvas(pages[i], { scale: 1.5, useCORS: true, logging: false, backgroundColor: "#ffffff" });
-                let imgData = canvas.toDataURL('image/jpeg', 1.0);
+// સ્કેલ 1.5 થી ઘટાડીને 1.0 કર્યો છે અને ક્વોલિટી 100% (1.0) થી ઘટાડીને 60% (0.6) કરી છે
+let canvas = await html2canvas(pages[i], { scale: 1.0, useCORS: true, logging: false, backgroundColor: "#ffffff" });
+let imgData = canvas.toDataURL('image/jpeg', 0.6);
                 let pdfHeight = (canvas.height * pdfWidth) / canvas.width; 
                 let orientation = pdfWidth > pdfHeight ? 'l' : 'p';
                 if (i === 0) pdf = new jsPDF(orientation, 'mm', [pdfWidth, pdfHeight]);
