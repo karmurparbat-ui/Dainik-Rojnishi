@@ -628,16 +628,16 @@ let imgData = canvas.toDataURL('image/jpeg', 0.6);
                     const docSnap = await getDoc(userRef);
                     
                     if (docSnap.exists()) {
-                        const cloudData = docSnap.data();
-                        
-                        // યુઝરનો ડેટા ગ્લોબલ વેરીએબલમાં સેવ કર્યો, જેથી બટન દબાવતી વખતે ચેક કરી શકાય
-                        window.currentUserData = cloudData; 
-                        window.currentUserData = cloudData; 
-
-// ફાયરબેઝમાંથી ડેટા લઈને પીડીએફના હેડરમાં સેટ કરવાનો કોડ
-if(cloudData.name) appConfig.teacherName = cloudData.name;
-if(cloudData.schoolName) appConfig.schoolName = cloudData.schoolName;
-if(cloudData.address) appConfig.address = cloudData.address;
+    const cloudData = docSnap.data();
+    window.currentUserData = cloudData; 
+    
+    // ફાયરબેઝમાંથી ડેટા સેટ કરવો (જો ડેટાબેઝમાં ન હોય તો ગૂગલ એકાઉન્ટનું નામ લેવું)
+    appConfig.teacherName = cloudData.name || user.displayName || 'શિક્ષકનું નામ';
+    appConfig.schoolName = cloudData.schoolName || 'શાળાનું નામ';
+    appConfig.address = cloudData.address || 'સરનામું અને ડાયસ કોડ';
+    
+    console.log("ફાયરબેઝ ડેટા લોડ થયો:", appConfig);
+}
                         if (!localStorage.getItem("myTimetable") && cloudData.timetable) {
                             localStorage.setItem("myTimetable", JSON.stringify(cloudData.timetable));
                             localStorage.setItem("myHolidays", cloudData.holidays || "");
