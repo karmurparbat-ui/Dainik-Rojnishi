@@ -57,7 +57,8 @@
         .day-title { font-size: 20px; font-weight: bold; color: var(--primary-color); margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;}
         .period-row { display: flex; gap: 5px; align-items: center; margin-bottom: 12px; justify-content: space-between; flex-wrap: nowrap; }
         .period-lbl { font-weight: bold; min-width: 48px; font-size: 15px; color: #333; }
-        .period-row select { padding: 8px 4px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; font-size: 15px; font-weight: bold; width: 45%; }
+        /* ડ્રોપડાઉનની સાઈઝ ૩ ભાગમાં વહેંચવા માટે અપડેટ કરેલ છે */
+        .period-row select { padding: 6px 2px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; font-size: 14px; font-weight: bold; width: 31%; }
         .settings-box { margin-bottom: 20px; background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #90caf9;}
         .settings-box label { font-weight: bold; color: #1565c0; display: block; margin-bottom: 5px; }
         .settings-box input { width: 100%; margin-bottom: 10px; }
@@ -77,12 +78,12 @@
         .info-row span { color: #222; }
         table { width: 100%; border-collapse: collapse; font-size: 36px; table-layout: fixed; }
         th:nth-child(1), td:nth-child(1) { width: 3%; text-align: center; } 
-        th:nth-child(2), td:nth-child(2) { width: 4.5%; text-align: center; } 
+        th:nth-child(2), td:nth-child(2) { width: 5%; text-align: center; } /* ધોરણ ખાનાની પહોળાઈ સહેજ વધારી છે */
         th:nth-child(3), td:nth-child(3) { width: 6.5%; text-align: center; } 
         th:nth-child(4), td:nth-child(4) { width: 13%; } 
         th:nth-child(5), td:nth-child(5) { width: 8%; }  
         th:nth-child(6), td:nth-child(6) { width: 13%; } 
-        th:nth-child(7), td:nth-child(7) { width: 26%; } 
+        th:nth-child(7), td:nth-child(7) { width: 25.5%; } 
         th:nth-child(8), td:nth-child(8) { width: 13%; } 
         th:nth-child(9), td:nth-child(9) { width: 13%; } 
         td[contenteditable="true"]:focus { background-color: #fff9c4 !important; outline: 3px dashed var(--primary-color); }
@@ -130,7 +131,6 @@
             </div>
 
             <div id="settingsArea" class="hidden">
-                <!-- નવું પ્રોફાઇલ સેટિંગ્સ બોક્સ -->
                 <div class="settings-box" style="background: #fff3e0; border-color: #ffb74d;">
                     <h3 style="margin-top:0; color: #e65100; margin-bottom: 15px;">તમારી પ્રોફાઇલ (PDF માટે)</h3>
                     
@@ -205,6 +205,7 @@
         const daysArr = ["સોમવાર", "મંગળવાર", "બુધવાર", "ગુરુવાર", "શુક્રવાર", "શનિવાર"];
         const dayNamesFull = ["રવિવાર", "સોમવાર", "મંગળવાર", "બુધવાર", "ગુરુવાર", "શુક્રવાર", "શનિવાર"];
         const standards = ["-", "૬", "૭", "૮"];
+        const sections = ["-", "A", "B", "C", "D"]; // નવો ઉમેરાયેલ વર્ગ
         const subjects = ["-", "ગુજરાતી", "ગણિત", "વિજ્ઞાન", "સા.વિજ્ઞાન", "અંગ્રેજી", "હિન્દી", "સંસ્કૃત", "ચિત્ર/પીટી"];
 
         function buildTimetableForm() {
@@ -216,7 +217,8 @@
                 for(let p = 1; p <= totalPeriods; p++) {
                     html += `<div class="period-row">
                         <span class="period-lbl">તાસ ${p}:</span>
-                        <select id="std_${day}_${p}">${standards.map(s => `<option value="${s}">${s === "-" ? "ધોરણ પસંદ કરો" : "ધો. " + s}</option>`).join('')}</select>
+                        <select id="std_${day}_${p}">${standards.map(s => `<option value="${s}">${s === "-" ? "ધોરણ" : "ધો. " + s}</option>`).join('')}</select>
+                        <select id="sec_${day}_${p}">${sections.map(s => `<option value="${s}">${s === "-" ? "વર્ગ" : "વર્ગ " + s}</option>`).join('')}</select>
                         <select id="sub_${day}_${p}">${subjects.map(s => `<option value="${s}">${s === "-" ? "વિષય પસંદ કરો" : s}</option>`).join('')}</select>
                     </div>`;
                 }
@@ -241,6 +243,7 @@
                     for(let p = 1; p <= totalPeriods; p++) {
                         if(ttData[day] && ttData[day][p]) {
                             document.getElementById(`std_${day}_${p}`).value = ttData[day][p].std;
+                            if(ttData[day][p].sec) document.getElementById(`sec_${day}_${p}`).value = ttData[day][p].sec; // Safe load
                             document.getElementById(`sub_${day}_${p}`).value = ttData[day][p].sub;
                         }
                     }
@@ -255,7 +258,8 @@
                 let totalPeriods = (day === "શનિવાર") ? 5 : 8;
                 for(let p = 1; p <= totalPeriods; p++) {
                     ttData[day][p] = { 
-                        std: document.getElementById(`std_${day}_${p}`).value, 
+                        std: document.getElementById(`std_${day}_${p}`).value,
+                        sec: document.getElementById(`sec_${day}_${p}`).value, // વર્ગ સેવ કરો
                         sub: document.getElementById(`sub_${day}_${p}`).value 
                     };
                 }
@@ -264,12 +268,10 @@
             const holidays = document.getElementById('holidayInput').value;
             const termStart = document.getElementById('termStartDate').value;
 
-            // પ્રોફાઇલ ડેટા લેવો
             const pName = document.getElementById('profTeacherName').value;
             const pSchool = document.getElementById('profSchoolName').value;
             const pAddress = document.getElementById('profAddress').value;
 
-            // ડેટાને પીડીએફ પ્રિન્ટ માટે appConfig માં સેટ કરવો
             appConfig.teacherName = pName || 'શિક્ષકનું નામ';
             appConfig.schoolName = pSchool || 'શાળાનું નામ (સેટિંગ્સમાં જઈને સેવ કરો)';
             appConfig.address = pAddress || 'સરનામું અને ડાયસ કોડ';
@@ -414,19 +416,26 @@
 
                         for(let p = 1; p <= totalPeriods; p++) {
                             let std = ttData[dayName][p].std;
+                            let sec = ttData[dayName][p].sec || "-"; // વર્ગ (Section) મેળવો
                             let sub = (ttData[dayName][p].sub || "").trim();
 
                             if(std && sub && std !== "-" && sub !== "-") {
-                                let trackerKey = `${std}_${sub}`;
+                                // નવું લોજીક: ટ્રેકિંગ માટે ધોરણ + વર્ગ + વિષય નો ઉપયોગ
+                                let trackerKey = sec !== "-" ? `${std}_${sec}_${sub}` : `${std}_${sub}`;
                                 seqTracker[trackerKey] = (seqTracker[trackerKey] || 0) + 1; 
 
                                 if(curr >= qStart && curr <= qEnd) {
                                     let currentSeq = seqTracker[trackerKey];
+                                    
+                                    // માસ્ટર ડેટામાંથી પાઠ લાવવા માટે માત્ર ધોરણ + વિષય + ક્રમ
                                     let masterKey = `${std}_${sub}_${currentSeq}`;
                                     let mRow = masterDataMap[masterKey];
 
+                                    // પ્રિન્ટમાં ધોરણ સાથે વર્ગ પણ બતાવો (દા.ત. ૬-A)
+                                    let displayStd = sec !== "-" ? `${std} (${sec})` : std;
+
                                     dailyRows.push({
-                                        "તાસ": p, "ધોરણ": std, "વિષય": sub,
+                                        "તાસ": p, "ધોરણ": displayStd, "વિષય": sub,
                                         "એકમ": mRow ? mRow["એકમ"] : "",
                                         "અધ્યયન નિષ્પતિ": mRow ? mRow["અધ્યયન નિષ્પતિ"] : "",
                                         "શૈક્ષણિક મુદ્દા": mRow ? mRow["શૈક્ષણિક મુદ્દા"] : "", 
@@ -584,7 +593,7 @@
         };
     </script>
 
-<!-- ફાયરબેઝ કનેક્શન અને માસ્ટર ડેટા ફેચ સ્ક્રિપ્ટ -->
+    <!-- ફાયરબેઝ કનેક્શન અને માસ્ટર ડેટા ફેચ સ્ક્રિપ્ટ -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
