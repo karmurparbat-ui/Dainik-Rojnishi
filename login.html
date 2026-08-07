@@ -19,13 +19,11 @@
         .auth-card h2 { color: #333; margin: 0 0 10px 0; font-size: 28px; font-weight: bold; }
         .auth-card p { color: #666; font-size: 18px; margin-bottom: 30px; }
         
-        /* Google Button Style */
         .btn-google { display: flex; align-items: center; justify-content: center; width: 100%; padding: 12px; background-color: white; color: #444; border: 2px solid #ddd; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; font-family: inherit; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .btn-google:hover { background-color: #f8f9fa; border-color: #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         .btn-google img { width: 24px; height: 24px; margin-right: 12px; }
         
-        #loadingMsg { margin-top: 20px; font-size: 18px; color: var(--primary-color); font-weight: bold; display: none; }
-        #errorMsg { margin-top: 15px; font-size: 16px; color: red; font-weight: bold; display: none; }
+        #errorMsg { margin-top: 15px; font-size: 14px; color: #d32f2f; font-weight: bold; display: none; background: #ffebee; padding: 10px; border-radius: 6px; border: 1px solid #ef9a9a; word-wrap: break-word; }
     </style>
 </head>
 <body>
@@ -46,16 +44,14 @@
             Google વડે લોગિન કરો
         </button>
         
-        <div id="loadingMsg">રાહ જુઓ, લોગિન થઈ રહ્યું છે...</div>
         <div id="errorMsg"></div>
     </div>
 
-    <!-- Firebase લોગિન માટેનો ફાઈનલ અને બેસ્ટ કોડ (Redirect + Smart Error Handler) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
-        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
+        // setPersistence અને browserLocalPersistence ઉમેર્યા છે[cite: 2]
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
 
-        // તમારો ફાયરબેઝ Config કોડ
         const firebaseConfig = {
             apiKey: "AIzaSyDY8EyUxzOivMNzTsaHV9M8EvF48nLlYAA",
             authDomain: "dainikrojnishi.firebaseapp.com",
@@ -70,49 +66,43 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
         
-        // આ કમાન્ડ મોબાઈલમાંથી સીધા ઈમેલ આઈડી સિલેક્ટ કરાવશે (પાસવર્ડ નહીં માંગે)
-        provider.setCustomParameters({
-            prompt: 'select_account'
-        });
+        // ડાયરેક્ટ એકાઉન્ટ સિલેક્ટ કરવા માટે
+        provider.setCustomParameters({ prompt: 'select_account' });
 
-        const btn = document.getElementById('googleBtn');
-        const loadingMsg = document.getElementById('loadingMsg');
-        const errorMsg = document.getElementById('errorMsg');
-
-        // ૧. સૌથી પહેલા Redirect નું પરિણામ ચેક કરો (Smart Error Handler)
-        getRedirectResult(auth).then((result) => {
-            if (result && result.user) {
-                window.location.replace("index.html"); // લોગિન સફળ
-            }
-        }).catch((error) => {
-            // જો પેલી missing initial state વાળી એરર આવે તો તેને ઇગ્નોર કરો અને એપને ચાલુ રાખો
-            if (error.code === 'auth/missing-initial-state' || error.message.includes('missing initial state')) {
-                console.warn("બ્રાઉઝરે જૂની મેમરી સાફ કરી દીધી છે. યુઝરે ફરી ક્લિક કરવું પડશે.");
-            } else {
-                // બીજી કોઈ વાસ્તવિક એરર હોય તો જ મેસેજ બતાવો
-                console.error("લોગિનમાં ભૂલ:", error);
-                errorMsg.innerText = "લોગિન રદ થયું અથવા નેટવર્ક એરર છે. ફરીથી પ્રયાસ કરો.";
-                errorMsg.style.display = 'block';
-            }
-            btn.style.display = 'flex';
-            loadingMsg.style.display = 'none';
-        });
-
-        // ૨. ચેક કરો કે યુઝર પહેલેથી લોગિન છે કે નહિ
+        // યુઝર પહેલેથી લોગિન છે કે નહિ તે ચેક કરો[cite: 2]
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 window.location.replace("index.html");
             }
         });
 
-        // ૩. ગૂગલ લોગિન બટન પર ક્લિક કરવાથી ચાલતું ફંક્શન
-        window.loginWithGoogle = function() {
-            btn.style.display = 'none';
-            loadingMsg.style.display = 'block';
-            errorMsg.style.display = 'none';
+        window.loginWithGoogle = async function() {
+            const btn = document.getElementById('googleBtn');
+            const errorMsg = document.getElementById('errorMsg');
             
-            // PWA (એપ) માટે સિક્યોર અને બેસ્ટ રીત
-            signInWithRedirect(auth, provider);
+            errorMsg.style.display = 'none';
+            btn.innerText = "પ્રક્રિયા ચાલુ છે...";
+            btn.disabled = true;
+
+            try {
+                // પહેલા મેમરી સેટ કરો, પછી જ લોગિન પોપ-અપ લાવો
+                await setPersistence(auth, browserLocalPersistence);
+                const result = await signInWithPopup(auth, provider);
+                
+                if (result.user) {
+                    window.location.replace("index.html");
+                }
+            } catch (error) {
+                console.error("લોગિન એરર:", error);
+                
+                // બટન પાછું મૂળ સ્થિતિમાં લાવો
+                btn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo"> Google વડે લોગિન કરો`;
+                btn.disabled = false;
+                
+                // અસલી એરર સ્ક્રીન પર બતાવો
+                errorMsg.innerHTML = `<strong>લોગિન નિષ્ફળ:</strong><br>${error.message} <br><small>(${error.code})</small>`;
+                errorMsg.style.display = 'block';
+            }
         }
     </script>
 </body>
