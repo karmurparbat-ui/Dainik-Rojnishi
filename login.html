@@ -23,7 +23,8 @@
         .btn-google:hover { background-color: #f8f9fa; border-color: #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         .btn-google img { width: 24px; height: 24px; margin-right: 12px; }
         
-        #errorMsg { margin-top: 15px; font-size: 14px; color: #d32f2f; font-weight: bold; display: none; background: #ffebee; padding: 10px; border-radius: 6px; border: 1px solid #ef9a9a; word-wrap: break-word; }
+        #loadingMsg { margin-top: 20px; font-size: 18px; color: var(--primary-color); font-weight: bold; display: none; }
+        #errorMsg { margin-top: 15px; font-size: 15px; color: #d32f2f; font-weight: bold; display: none; background: #ffebee; padding: 12px; border-radius: 6px; border: 1px solid #ef9a9a; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -44,13 +45,13 @@
             Google વડે લોગિન કરો
         </button>
         
+        <div id="loadingMsg">રાહ જુઓ, પ્રક્રિયા ચાલુ છે...</div>
         <div id="errorMsg"></div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
-        // setPersistence અને browserLocalPersistence ઉમેર્યા છે[cite: 2]
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
+        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDY8EyUxzOivMNzTsaHV9M8EvF48nLlYAA",
@@ -66,43 +67,42 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
         
-        // ડાયરેક્ટ એકાઉન્ટ સિલેક્ટ કરવા માટે
         provider.setCustomParameters({ prompt: 'select_account' });
 
-        // યુઝર પહેલેથી લોગિન છે કે નહિ તે ચેક કરો[cite: 2]
+        const btn = document.getElementById('googleBtn');
+        const loadingMsg = document.getElementById('loadingMsg');
+        const errorMsg = document.getElementById('errorMsg');
+
+        // ૧. Redirect પછીનું પરિણામ ચેક કરો
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) {
+                window.location.replace("index.html");
+            }
+        }).catch((error) => {
+            console.error("લોગિન એરર:", error);
+            
+            errorMsg.innerHTML = `લોગિન નિષ્ફળ: ${error.message}`;
+            errorMsg.style.display = 'block';
+            
+            btn.style.display = 'flex';
+            loadingMsg.style.display = 'none';
+        });
+
+        // ૨. ચેક કરો કે યુઝર પહેલેથી લોગિન છે કે નહિ
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 window.location.replace("index.html");
             }
         });
 
-        window.loginWithGoogle = async function() {
-            const btn = document.getElementById('googleBtn');
-            const errorMsg = document.getElementById('errorMsg');
-            
+        // ૩. ગૂગલ લોગિન બટન ફંક્શન
+        window.loginWithGoogle = function() {
+            // અહીંથી sessionStorage.clear() કાઢી નાખવામાં આવ્યું છે.
+            btn.style.display = 'none';
+            loadingMsg.style.display = 'block';
             errorMsg.style.display = 'none';
-            btn.innerText = "પ્રક્રિયા ચાલુ છે...";
-            btn.disabled = true;
-
-            try {
-                // પહેલા મેમરી સેટ કરો, પછી જ લોગિન પોપ-અપ લાવો
-                await setPersistence(auth, browserLocalPersistence);
-                const result = await signInWithPopup(auth, provider);
-                
-                if (result.user) {
-                    window.location.replace("index.html");
-                }
-            } catch (error) {
-                console.error("લોગિન એરર:", error);
-                
-                // બટન પાછું મૂળ સ્થિતિમાં લાવો
-                btn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo"> Google વડે લોગિન કરો`;
-                btn.disabled = false;
-                
-                // અસલી એરર સ્ક્રીન પર બતાવો
-                errorMsg.innerHTML = `<strong>લોગિન નિષ્ફળ:</strong><br>${error.message} <br><small>(${error.code})</small>`;
-                errorMsg.style.display = 'block';
-            }
+            
+            signInWithRedirect(auth, provider);
         }
     </script>
 </body>
