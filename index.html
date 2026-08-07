@@ -582,12 +582,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     // ---- નવો કોડ અહીં પૂરો ----
 };
 
-        // સિક્યોર PDF ડાઉનલોડ ઇવેન્ટ લિસનર (Hardening)
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('btnPdf').addEventListener('click', async function() {
+       // સિક્યોર PDF ડાઉનલોડ ઇવેન્ટ લિસનર
+        const pdfBtn = document.getElementById('btnPdf');
+        if (pdfBtn) {
+            pdfBtn.addEventListener('click', async function() {
                 const btn = this;
                 
-                // બેકએન્ડ માંથી આવેલો પ્રીમિયમ ડેટા ચેક થાય છે
+                // ૧. ચેક કરો કે યુઝર પ્રીમિયમ છે કે નહીં
                 if (window.currentUserData && window.currentUserData.isPaid === true) {
                     
                     const originalText = btn.innerText;
@@ -626,12 +627,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     pdf.save(fileName);
                     btn.innerText = originalText;
                     btn.disabled = false;
+
                 } else {
-                    // જો પૈસા ન ભર્યા હોય તો મોડલ બતાવો
-                    showPremiumModal();
+                    // ૨. જો પૈસા ન ભર્યા હોય તો સીધું WhatsApp વાળું મોડલ બતાવો
+                    document.getElementById("premiumModal").classList.remove("hidden");
                 }
             });
-        });
+        }
     </script>
 
     <!-- ફાયરબેઝ કનેક્શન અને માસ્ટર ડેટા ફેચ સ્ક્રિપ્ટ -->
