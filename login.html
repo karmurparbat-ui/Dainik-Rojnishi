@@ -50,11 +50,10 @@
         <div id="errorMsg"></div>
     </div>
 
-    <!-- Firebase લોગિન માટેનો નવો કોડ (Popup System) -->
+    <!-- Firebase લોગિન માટેનો ફાઈનલ અને બેસ્ટ કોડ (Redirect + Smart Error Handler) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
-        // અહી signInWithRedirect ની જગ્યાએ signInWithPopup ઉમેર્યું છે[cite: 2]
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js"; 
+        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
 
         // તમારો ફાયરબેઝ Config કોડ
         const firebaseConfig = {
@@ -67,43 +66,53 @@
             measurementId: "G-SSM6EX4LRM"
         };
 
-        // ફાયરબેઝ શરૂ કરો
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
+        
+        // આ કમાન્ડ મોબાઈલમાંથી સીધા ઈમેલ આઈડી સિલેક્ટ કરાવશે (પાસવર્ડ નહીં માંગે)
+        provider.setCustomParameters({
+            prompt: 'select_account'
+        });
 
-        // ૧. ચેક કરો કે યુઝર પહેલેથી લોગિન છે કે નહિ
+        const btn = document.getElementById('googleBtn');
+        const loadingMsg = document.getElementById('loadingMsg');
+        const errorMsg = document.getElementById('errorMsg');
+
+        // ૧. સૌથી પહેલા Redirect નું પરિણામ ચેક કરો (Smart Error Handler)
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) {
+                window.location.replace("index.html"); // લોગિન સફળ
+            }
+        }).catch((error) => {
+            // જો પેલી missing initial state વાળી એરર આવે તો તેને ઇગ્નોર કરો અને એપને ચાલુ રાખો
+            if (error.code === 'auth/missing-initial-state' || error.message.includes('missing initial state')) {
+                console.warn("બ્રાઉઝરે જૂની મેમરી સાફ કરી દીધી છે. યુઝરે ફરી ક્લિક કરવું પડશે.");
+            } else {
+                // બીજી કોઈ વાસ્તવિક એરર હોય તો જ મેસેજ બતાવો
+                console.error("લોગિનમાં ભૂલ:", error);
+                errorMsg.innerText = "લોગિન રદ થયું અથવા નેટવર્ક એરર છે. ફરીથી પ્રયાસ કરો.";
+                errorMsg.style.display = 'block';
+            }
+            btn.style.display = 'flex';
+            loadingMsg.style.display = 'none';
+        });
+
+        // ૨. ચેક કરો કે યુઝર પહેલેથી લોગિન છે કે નહિ
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // જો લોગિન હોય તો સીધા રોજનીશીના પેજ પર મોકલી દો
                 window.location.replace("index.html");
             }
         });
 
-        // ૨. ગૂગલ લોગિન બટન પર ક્લિક કરવાથી ચાલતું ફંક્શન
+        // ૩. ગૂગલ લોગિન બટન પર ક્લિક કરવાથી ચાલતું ફંક્શન
         window.loginWithGoogle = function() {
-            const btn = document.getElementById('googleBtn');
-            const loadingMsg = document.getElementById('loadingMsg');
-            const errorMsg = document.getElementById('errorMsg');
+            btn.style.display = 'none';
+            loadingMsg.style.display = 'block';
+            errorMsg.style.display = 'none';
             
-            // બટન છુપાવીને લોડિંગ બતાવો
-            btn.style.display = 'none'; 
-            loadingMsg.style.display = 'block'; 
-            errorMsg.style.display = 'none'; 
-
-            // Redirect ની જગ્યાએ Popup પદ્ધતિ (જેથી બ્રાઉઝર એરર ન આપે અને સીધું લોગિન થાય)
-            signInWithPopup(auth, provider).then((result) => {
-                // લોગિન સફળ થયું! સીધા મુખ્ય પેજ પર...
-                window.location.replace("index.html");
-            }).catch((error) => {
-                console.error("લોગિનમાં ભૂલ:", error);
-                
-                // જો એરર આવે તો ફરીથી બટન બતાવો અને એરર મેસેજ બતાવો
-                loadingMsg.style.display = 'none';
-                btn.style.display = 'flex';
-                errorMsg.innerText = "લોગિન પ્રક્રિયામાં કોઈ ખામી સર્જાઈ છે. ફરી પ્રયાસ કરો.";
-                errorMsg.style.display = 'block';
-            });
+            // PWA (એપ) માટે સિક્યોર અને બેસ્ટ રીત
+            signInWithRedirect(auth, provider);
         }
     </script>
 </body>
