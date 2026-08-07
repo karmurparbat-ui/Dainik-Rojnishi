@@ -49,9 +49,10 @@
         <div id="errorMsg"></div>
     </div>
 
+    <!-- માત્ર ને માત્ર Popup વાળો જ કોડ (સફેદ સ્ક્રીન રોકવા માટે) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
-        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDY8EyUxzOivMNzTsaHV9M8EvF48nLlYAA",
@@ -67,42 +68,44 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
         
+        // ડાયરેક્ટ એકાઉન્ટ સિલેક્ટ કરવા માટે
         provider.setCustomParameters({ prompt: 'select_account' });
 
         const btn = document.getElementById('googleBtn');
         const loadingMsg = document.getElementById('loadingMsg');
         const errorMsg = document.getElementById('errorMsg');
 
-        // ૧. Redirect પછીનું પરિણામ ચેક કરો
-        getRedirectResult(auth).then((result) => {
-            if (result && result.user) {
-                window.location.replace("index.html");
-            }
-        }).catch((error) => {
-            console.error("લોગિન એરર:", error);
-            
-            errorMsg.innerHTML = `લોગિન નિષ્ફળ: ${error.message}`;
-            errorMsg.style.display = 'block';
-            
-            btn.style.display = 'flex';
-            loadingMsg.style.display = 'none';
-        });
-
-        // ૨. ચેક કરો કે યુઝર પહેલેથી લોગિન છે કે નહિ
+        // યુઝર પહેલેથી લોગિન છે કે નહિ?
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 window.location.replace("index.html");
             }
         });
 
-        // ૩. ગૂગલ લોગિન બટન ફંક્શન
-        window.loginWithGoogle = function() {
-            // અહીંથી sessionStorage.clear() કાઢી નાખવામાં આવ્યું છે.
+        // ગૂગલ લોગિન બટન ફંક્શન
+        window.loginWithGoogle = async function() {
             btn.style.display = 'none';
             loadingMsg.style.display = 'block';
             errorMsg.style.display = 'none';
             
-            signInWithRedirect(auth, provider);
+            try {
+                // ફક્ત પોપ-અપ નો જ ઉપયોગ કરો
+                const result = await signInWithPopup(auth, provider);
+                if (result.user) {
+                    window.location.replace("index.html");
+                }
+            } catch (error) {
+                console.error("Login Error:", error);
+                
+                // જો યુઝર પોતે જ પોપ-અપ બંધ કરી દે તો મેસેજ ન બતાવવો
+                if (error.code !== 'auth/popup-closed-by-user') {
+                    errorMsg.innerHTML = `લોગિન નિષ્ફળ: ${error.message}`;
+                    errorMsg.style.display = 'block';
+                }
+                
+                btn.style.display = 'flex';
+                loadingMsg.style.display = 'none';
+            }
         }
     </script>
 </body>
