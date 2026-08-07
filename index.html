@@ -57,7 +57,6 @@
         .day-title { font-size: 20px; font-weight: bold; color: var(--primary-color); margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;}
         .period-row { display: flex; gap: 5px; align-items: center; margin-bottom: 12px; justify-content: space-between; flex-wrap: nowrap; }
         .period-lbl { font-weight: bold; min-width: 48px; font-size: 15px; color: #333; }
-        /* ડ્રોપડાઉનની સાઈઝ ૩ ભાગમાં વહેંચવા માટે અપડેટ કરેલ છે */
         .period-row select { padding: 6px 2px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; font-size: 14px; font-weight: bold; width: 31%; }
         .settings-box { margin-bottom: 20px; background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #90caf9;}
         .settings-box label { font-weight: bold; color: #1565c0; display: block; margin-bottom: 5px; }
@@ -78,7 +77,7 @@
         .info-row span { color: #222; }
         table { width: 100%; border-collapse: collapse; font-size: 36px; table-layout: fixed; }
         th:nth-child(1), td:nth-child(1) { width: 3%; text-align: center; } 
-        th:nth-child(2), td:nth-child(2) { width: 5%; text-align: center; } /* ધોરણ ખાનાની પહોળાઈ સહેજ વધારી છે */
+        th:nth-child(2), td:nth-child(2) { width: 5%; text-align: center; } 
         th:nth-child(3), td:nth-child(3) { width: 6.5%; text-align: center; } 
         th:nth-child(4), td:nth-child(4) { width: 13%; } 
         th:nth-child(5), td:nth-child(5) { width: 8%; }  
@@ -126,7 +125,8 @@
                     <button class="main-btn btn-search" onclick="fetchData()">માહિતી મેળવો</button>
                 </div>
                 <div class="action-btns hidden" id="actionBtns">
-                   <button class="main-btn btn-pdf" id="btnPdf" onclick="checkPremiumAndDownload()">PDF ડાઉનલોડ કરો</button>
+                   <!-- અહીથી onclick ઇવેન્ટ કાઢી નાખવામાં આવી છે -->
+                   <button class="main-btn btn-pdf" id="btnPdf">PDF ડાઉનલોડ કરો</button>
                 </div>
             </div>
 
@@ -205,7 +205,7 @@
         const daysArr = ["સોમવાર", "મંગળવાર", "બુધવાર", "ગુરુવાર", "શુક્રવાર", "શનિવાર"];
         const dayNamesFull = ["રવિવાર", "સોમવાર", "મંગળવાર", "બુધવાર", "ગુરુવાર", "શુક્રવાર", "શનિવાર"];
         const standards = ["-", "૬", "૭", "૮"];
-        const sections = ["-", "A", "B", "C", "D"]; // નવો ઉમેરાયેલ વર્ગ
+        const sections = ["-", "A", "B", "C", "D"]; 
         const subjects = ["-", "ગુજરાતી", "ગણિત", "વિજ્ઞાન", "સા.વિજ્ઞાન", "અંગ્રેજી", "હિન્દી", "સંસ્કૃત", "ચિત્ર/પીટી"];
 
         function buildTimetableForm() {
@@ -243,7 +243,7 @@
                     for(let p = 1; p <= totalPeriods; p++) {
                         if(ttData[day] && ttData[day][p]) {
                             document.getElementById(`std_${day}_${p}`).value = ttData[day][p].std;
-                            if(ttData[day][p].sec) document.getElementById(`sec_${day}_${p}`).value = ttData[day][p].sec; // Safe load
+                            if(ttData[day][p].sec) document.getElementById(`sec_${day}_${p}`).value = ttData[day][p].sec; 
                             document.getElementById(`sub_${day}_${p}`).value = ttData[day][p].sub;
                         }
                     }
@@ -259,7 +259,7 @@
                 for(let p = 1; p <= totalPeriods; p++) {
                     ttData[day][p] = { 
                         std: document.getElementById(`std_${day}_${p}`).value,
-                        sec: document.getElementById(`sec_${day}_${p}`).value, // વર્ગ સેવ કરો
+                        sec: document.getElementById(`sec_${day}_${p}`).value, 
                         sub: document.getElementById(`sub_${day}_${p}`).value 
                     };
                 }
@@ -416,22 +416,19 @@
 
                         for(let p = 1; p <= totalPeriods; p++) {
                             let std = ttData[dayName][p].std;
-                            let sec = ttData[dayName][p].sec || "-"; // વર્ગ (Section) મેળવો
+                            let sec = ttData[dayName][p].sec || "-"; 
                             let sub = (ttData[dayName][p].sub || "").trim();
 
                             if(std && sub && std !== "-" && sub !== "-") {
-                                // નવું લોજીક: ટ્રેકિંગ માટે ધોરણ + વર્ગ + વિષય નો ઉપયોગ
                                 let trackerKey = sec !== "-" ? `${std}_${sec}_${sub}` : `${std}_${sub}`;
                                 seqTracker[trackerKey] = (seqTracker[trackerKey] || 0) + 1; 
 
                                 if(curr >= qStart && curr <= qEnd) {
                                     let currentSeq = seqTracker[trackerKey];
                                     
-                                    // માસ્ટર ડેટામાંથી પાઠ લાવવા માટે માત્ર ધોરણ + વિષય + ક્રમ
                                     let masterKey = `${std}_${sub}_${currentSeq}`;
                                     let mRow = masterDataMap[masterKey];
 
-                                    // પ્રિન્ટમાં ધોરણ સાથે વર્ગ પણ બતાવો (દા.ત. ૬-A)
                                     let displayStd = sec !== "-" ? `${std} (${sec})` : std;
 
                                     dailyRows.push({
@@ -529,46 +526,6 @@
             document.getElementById('actionBtns').classList.remove('hidden');
         }
 
-        async function downloadPDF() {
-            const btn = document.getElementById('btnPdf');
-            const originalText = btn.innerText;
-            btn.innerText = "PDF બની રહી છે... કૃપા કરીને રાહ જુઓ";
-            btn.disabled = true;
-
-            await document.fonts.ready;
-            const wrapper = document.getElementById('previewWrapper');
-            const container = document.getElementById('multiPageContainer');
-            
-            wrapper.style.overflow = 'hidden'; 
-            container.classList.remove('preview-scale');
-            document.querySelectorAll('[contenteditable="true"]').forEach(el => el.style.outline = "none");
-
-            const pages = document.querySelectorAll('.print-area');
-            const pdfWidth = 297; 
-            let pdf = null;
-
-            for (let i = 0; i < pages.length; i++) {
-                let canvas = await html2canvas(pages[i], { scale: 1.0, useCORS: true, logging: false, backgroundColor: "#ffffff" });
-                let imgData = canvas.toDataURL('image/jpeg', 0.6);
-                let pdfHeight = (canvas.height * pdfWidth) / canvas.width; 
-                let orientation = pdfWidth > pdfHeight ? 'l' : 'p';
-                if (i === 0) pdf = new jsPDF(orientation, 'mm', [pdfWidth, pdfHeight]);
-                else pdf.addPage([pdfWidth, pdfHeight], orientation);
-                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-            }
-
-            container.classList.add('preview-scale');
-            wrapper.style.overflowX = 'auto';
-
-            let fileName = currentMode === 'single' 
-                ? `Rojnishi_${document.getElementById('startDate').value}.pdf` 
-                : `Rojnishi_${document.getElementById('startDate').value}_To_${document.getElementById('endDate').value}.pdf`;
-
-            pdf.save(fileName);
-            btn.innerText = originalText;
-            btn.disabled = false;
-        }
-
         window.onload = function() {
             buildTimetableForm();
             let today = new Date();
@@ -591,6 +548,57 @@
             let waLink = "https://wa.me/" + myNumber + "?text=" + encodeURIComponent(msg);
             window.open(waLink, "_blank");
         };
+
+        // સિક્યોર PDF ડાઉનલોડ ઇવેન્ટ લિસનર (Hardening)
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btnPdf').addEventListener('click', async function() {
+                const btn = this;
+                
+                // બેકએન્ડ માંથી આવેલો પ્રીમિયમ ડેટા ચેક થાય છે
+                if (window.currentUserData && window.currentUserData.isPaid === true) {
+                    
+                    const originalText = btn.innerText;
+                    btn.innerText = "PDF બની રહી છે... કૃપા કરીને રાહ જુઓ";
+                    btn.disabled = true;
+
+                    await document.fonts.ready;
+                    const wrapper = document.getElementById('previewWrapper');
+                    const container = document.getElementById('multiPageContainer');
+                    
+                    wrapper.style.overflow = 'hidden'; 
+                    container.classList.remove('preview-scale');
+                    document.querySelectorAll('[contenteditable="true"]').forEach(el => el.style.outline = "none");
+
+                    const pages = document.querySelectorAll('.print-area');
+                    const pdfWidth = 297; 
+                    let pdf = null;
+
+                    for (let i = 0; i < pages.length; i++) {
+                        let canvas = await html2canvas(pages[i], { scale: 1.0, useCORS: true, logging: false, backgroundColor: "#ffffff" });
+                        let imgData = canvas.toDataURL('image/jpeg', 0.6);
+                        let pdfHeight = (canvas.height * pdfWidth) / canvas.width; 
+                        let orientation = pdfWidth > pdfHeight ? 'l' : 'p';
+                        if (i === 0) pdf = new window.jspdf.jsPDF(orientation, 'mm', [pdfWidth, pdfHeight]);
+                        else pdf.addPage([pdfWidth, pdfHeight], orientation);
+                        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                    }
+
+                    container.classList.add('preview-scale');
+                    wrapper.style.overflowX = 'auto';
+
+                    let fileName = currentMode === 'single' 
+                        ? `Rojnishi_${document.getElementById('startDate').value}.pdf` 
+                        : `Rojnishi_${document.getElementById('startDate').value}_To_${document.getElementById('endDate').value}.pdf`;
+
+                    pdf.save(fileName);
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                } else {
+                    // જો પૈસા ન ભર્યા હોય તો મોડલ બતાવો
+                    showPremiumModal();
+                }
+            });
+        });
     </script>
 
     <!-- ફાયરબેઝ કનેક્શન અને માસ્ટર ડેટા ફેચ સ્ક્રિપ્ટ -->
@@ -681,14 +689,6 @@
                 window.location.replace("login.html");
             }
         });
-
-        window.checkPremiumAndDownload = function() {
-            if (window.currentUserData && window.currentUserData.isPaid === true) {
-                downloadPDF(); 
-            } else {
-                showPremiumModal(); 
-            }
-        };
 
         window.backupToFirebase = async function(dataToSave) {
             const user = auth.currentUser;
