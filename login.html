@@ -40,7 +40,8 @@
         
         <h2>દૈનિક રોજનીશી</h2>
         <p>શિક્ષકો માટેનું સ્માર્ટ પ્લેટફોર્મ</p>
- <button class="btn-google" id="googleBtn" onclick="loginWithGoogle()">
+        
+        <button class="btn-google" id="googleBtn" onclick="loginWithGoogle()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
             Google વડે લોગિન કરો
         </button>
@@ -49,10 +50,11 @@
         <div id="errorMsg"></div>
     </div>
 
-  <!-- Firebase લોગિન માટેનો નવો કોડ (Redirect System) -->
+    <!-- Firebase લોગિન માટેનો નવો કોડ (Popup System) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
-        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
+        // અહી signInWithRedirect ની જગ્યાએ signInWithPopup ઉમેર્યું છે[cite: 2]
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js"; 
 
         // તમારો ફાયરબેઝ Config કોડ
         const firebaseConfig = {
@@ -78,20 +80,31 @@
             }
         });
 
-        // ૨. જ્યારે ગૂગલ લોગિન (Redirect) થઈને પાછું આવે ત્યારે ડેટા મેળવવાનો કોડ
-        getRedirectResult(auth).then((result) => {
-            if (result && result.user) {
-                // લોગિન સફળ થયું!
-                window.location.replace("index.html");
-            }
-        }).catch((error) => {
-            console.error("લોગિનમાં ભૂલ:", error);
-            alert("લોગિન પ્રક્રિયામાં કોઈ ખામી સર્જાઈ છે. ફરી પ્રયાસ કરો.");
-        });
-
-        // ૩. ગૂગલ લોગિન બટન પર ક્લિક કરવાથી ચાલતું ફંક્શન
+        // ૨. ગૂગલ લોગિન બટન પર ક્લિક કરવાથી ચાલતું ફંક્શન
         window.loginWithGoogle = function() {
-            // Popup ની જગ્યાએ Redirect પદ્ધતિ (WebView માટે બેસ્ટ)
-            signInWithRedirect(auth, provider);
+            const btn = document.getElementById('googleBtn');
+            const loadingMsg = document.getElementById('loadingMsg');
+            const errorMsg = document.getElementById('errorMsg');
+            
+            // બટન છુપાવીને લોડિંગ બતાવો
+            btn.style.display = 'none'; 
+            loadingMsg.style.display = 'block'; 
+            errorMsg.style.display = 'none'; 
+
+            // Redirect ની જગ્યાએ Popup પદ્ધતિ (જેથી બ્રાઉઝર એરર ન આપે અને સીધું લોગિન થાય)
+            signInWithPopup(auth, provider).then((result) => {
+                // લોગિન સફળ થયું! સીધા મુખ્ય પેજ પર...
+                window.location.replace("index.html");
+            }).catch((error) => {
+                console.error("લોગિનમાં ભૂલ:", error);
+                
+                // જો એરર આવે તો ફરીથી બટન બતાવો અને એરર મેસેજ બતાવો
+                loadingMsg.style.display = 'none';
+                btn.style.display = 'flex';
+                errorMsg.innerText = "લોગિન પ્રક્રિયામાં કોઈ ખામી સર્જાઈ છે. ફરી પ્રયાસ કરો.";
+                errorMsg.style.display = 'block';
+            });
         }
     </script>
+</body>
+</html>
