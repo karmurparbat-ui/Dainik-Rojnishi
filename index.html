@@ -92,6 +92,29 @@
         .signature-row { display: flex; justify-content: space-between; font-size: 45px; font-weight: 700; padding: 20px 25px 10px 25px; margin-top: 15px; }
         @media (max-width: 900px) { .preview-scale { transform: scale(0.30); margin-bottom: -65%; } }
         @media (max-width: 600px) { .preview-scale { transform: scale(0.24); margin-bottom: -72%; } .action-btns { flex-direction: column; } .app-header { flex-direction: column; gap: 15px; } }
+        /* તારીખનું ફોર્મેટ DD/MM/YYYY ફિક્સ કરવા માટેની ખાસ સ્ટાઈલ */
+input[type="date"] {
+    position: relative;
+    color: transparent !important; /* અસલ સિસ્ટમ ફોર્મેટ છુપાવવા */
+}
+input[type="date"]::before {
+    content: attr(data-date);
+    position: absolute;
+    left: 15px;
+    color: #222; /* દેખાતા અક્ષરનો કલર */
+    font-family: inherit;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    pointer-events: none; /* ક્લિક પાછળ જવા દેવા */
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%; height: 100%;
+    opacity: 0; 
+    cursor: pointer;
+}
     </style>
 </head>
 <body>
@@ -527,27 +550,37 @@
         }
 
         window.onload = function() {
-            buildTimetableForm();
-            let today = new Date();
-            let dd = String(today.getDate()).padStart(2, '0');
-            let mm = String(today.getMonth() + 1).padStart(2, '0'); 
-            let yyyy = today.getFullYear();
-            let todayStr = yyyy + '-' + mm + '-' + dd;
-            document.getElementById('startDate').value = todayStr;
-        };
+    buildTimetableForm();
+    let today = new Date();
+    let dd = String(today.getDate()).padStart(2, '0');
+    let mm = String(today.getMonth() + 1).padStart(2, '0'); 
+    let yyyy = today.getFullYear();
+    let todayStr = yyyy + '-' + mm + '-' + dd;
+    document.getElementById('startDate').value = todayStr;
 
-        window.showPremiumModal = function() {
-            document.getElementById("premiumModal").classList.remove("hidden");
-        };
-        window.closePremiumModal = function() {
-            document.getElementById("premiumModal").classList.add("hidden");
-        };
-        window.sendWhatsApp = function() {
-            let myNumber = "919586311704"; 
-            let msg = "નમસ્તે પરબતભાઈ, મેં 'દૈનિક રોજનીશી' એપના પ્રીમિયમ વર્ઝન (₹૨૯૯) માટે પેમેન્ટ કર્યું છે. મારો સ્ક્રીનશોટ આ સાથે મોકલું છું.";
-            let waLink = "https://wa.me/" + myNumber + "?text=" + encodeURIComponent(msg);
-            window.open(waLink, "_blank");
-        };
+    // ---- તારીખનું ફોર્મેટ બદલવા માટેનો નવો કોડ અહીંથી શરૂ ----
+    function updateDateDisplay(elementId) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        if (el.value) {
+            // ડેટાબેઝ માટે YYYY-MM-DD જ રહેશે, પણ દેખાડવા માટે આપણે DD/MM/YYYY કરીએ છીએ
+            const [y, m, d] = el.value.split('-');
+            el.setAttribute('data-date', `${d}/${m}/${y}`);
+        } else {
+            el.setAttribute('data-date', 'DD/MM/YYYY');
+        }
+    }
+
+    // પેજ લોડ થાય અને તારીખ બદલાય ત્યારે ફોર્મેટ અપડેટ કરવા
+    ['startDate', 'endDate', 'termStartDate'].forEach(id => {
+        let el = document.getElementById(id);
+        if(el) {
+            updateDateDisplay(id); 
+            el.addEventListener('change', () => updateDateDisplay(id)); 
+        }
+    });
+    // ---- નવો કોડ અહીં પૂરો ----
+};
 
         // સિક્યોર PDF ડાઉનલોડ ઇવેન્ટ લિસનર (Hardening)
         document.addEventListener('DOMContentLoaded', () => {
