@@ -92,29 +92,30 @@
         .signature-row { display: flex; justify-content: space-between; font-size: 45px; font-weight: 700; padding: 20px 25px 10px 25px; margin-top: 15px; }
         @media (max-width: 900px) { .preview-scale { transform: scale(0.30); margin-bottom: -65%; } }
         @media (max-width: 600px) { .preview-scale { transform: scale(0.24); margin-bottom: -72%; } .action-btns { flex-direction: column; } .app-header { flex-direction: column; gap: 15px; } }
+        
         /* તારીખનું ફોર્મેટ DD/MM/YYYY ફિક્સ કરવા માટેની ખાસ સ્ટાઈલ */
-input[type="date"] {
-    position: relative;
-    color: transparent !important; /* અસલ સિસ્ટમ ફોર્મેટ છુપાવવા */
-}
-input[type="date"]::before {
-    content: attr(data-date);
-    position: absolute;
-    left: 15px;
-    color: #222; /* દેખાતા અક્ષરનો કલર */
-    font-family: inherit;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 16px;
-    pointer-events: none; /* ક્લિક પાછળ જવા દેવા */
-}
-input[type="date"]::-webkit-calendar-picker-indicator {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    width: 100%; height: 100%;
-    opacity: 0; 
-    cursor: pointer;
-}
+        input[type="date"] {
+            position: relative;
+            color: transparent !important; 
+        }
+        input[type="date"]::before {
+            content: attr(data-date);
+            position: absolute;
+            left: 15px;
+            color: #222; 
+            font-family: inherit;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            pointer-events: none; 
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%;
+            opacity: 0; 
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -148,7 +149,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     <button class="main-btn btn-search" onclick="fetchData()">માહિતી મેળવો</button>
                 </div>
                 <div class="action-btns hidden" id="actionBtns">
-                   <!-- અહીથી onclick ઇવેન્ટ કાઢી નાખવામાં આવી છે -->
                    <button class="main-btn btn-pdf" id="btnPdf">PDF ડાઉનલોડ કરો</button>
                 </div>
             </div>
@@ -550,90 +550,109 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         }
 
         window.onload = function() {
-    buildTimetableForm();
-    let today = new Date();
-    let dd = String(today.getDate()).padStart(2, '0');
-    let mm = String(today.getMonth() + 1).padStart(2, '0'); 
-    let yyyy = today.getFullYear();
-    let todayStr = yyyy + '-' + mm + '-' + dd;
-    document.getElementById('startDate').value = todayStr;
+            buildTimetableForm();
+            let today = new Date();
+            let dd = String(today.getDate()).padStart(2, '0');
+            let mm = String(today.getMonth() + 1).padStart(2, '0'); 
+            let yyyy = today.getFullYear();
+            let todayStr = yyyy + '-' + mm + '-' + dd;
+            document.getElementById('startDate').value = todayStr;
 
-    // ---- તારીખનું ફોર્મેટ બદલવા માટેનો નવો કોડ અહીંથી શરૂ ----
-    function updateDateDisplay(elementId) {
-        const el = document.getElementById(elementId);
-        if (!el) return;
-        if (el.value) {
-            // ડેટાબેઝ માટે YYYY-MM-DD જ રહેશે, પણ દેખાડવા માટે આપણે DD/MM/YYYY કરીએ છીએ
-            const [y, m, d] = el.value.split('-');
-            el.setAttribute('data-date', `${d}/${m}/${y}`);
-        } else {
-            el.setAttribute('data-date', 'DD/MM/YYYY');
-        }
-    }
-
-    // પેજ લોડ થાય અને તારીખ બદલાય ત્યારે ફોર્મેટ અપડેટ કરવા
-    ['startDate', 'endDate', 'termStartDate'].forEach(id => {
-        let el = document.getElementById(id);
-        if(el) {
-            updateDateDisplay(id); 
-            el.addEventListener('change', () => updateDateDisplay(id)); 
-        }
-    });
-    // ---- નવો કોડ અહીં પૂરો ----
-};
-
-       // સિક્યોર PDF ડાઉનલોડ ઇવેન્ટ લિસનર
-        const pdfBtn = document.getElementById('btnPdf');
-        if (pdfBtn) {
-            pdfBtn.addEventListener('click', async function() {
-                const btn = this;
-                
-                // ૧. ચેક કરો કે યુઝર પ્રીમિયમ છે કે નહીં
-                if (window.currentUserData && window.currentUserData.isPaid === true) {
-                    
-                    const originalText = btn.innerText;
-                    btn.innerText = "PDF બની રહી છે... કૃપા કરીને રાહ જુઓ";
-                    btn.disabled = true;
-
-                    await document.fonts.ready;
-                    const wrapper = document.getElementById('previewWrapper');
-                    const container = document.getElementById('multiPageContainer');
-                    
-                    wrapper.style.overflow = 'hidden'; 
-                    container.classList.remove('preview-scale');
-                    document.querySelectorAll('[contenteditable="true"]').forEach(el => el.style.outline = "none");
-
-                    const pages = document.querySelectorAll('.print-area');
-                    const pdfWidth = 297; 
-                    let pdf = null;
-
-                    for (let i = 0; i < pages.length; i++) {
-                        let canvas = await html2canvas(pages[i], { scale: 1.0, useCORS: true, logging: false, backgroundColor: "#ffffff" });
-                        let imgData = canvas.toDataURL('image/jpeg', 0.6);
-                        let pdfHeight = (canvas.height * pdfWidth) / canvas.width; 
-                        let orientation = pdfWidth > pdfHeight ? 'l' : 'p';
-                        if (i === 0) pdf = new window.jspdf.jsPDF(orientation, 'mm', [pdfWidth, pdfHeight]);
-                        else pdf.addPage([pdfWidth, pdfHeight], orientation);
-                        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-                    }
-
-                    container.classList.add('preview-scale');
-                    wrapper.style.overflowX = 'auto';
-
-                    let fileName = currentMode === 'single' 
-                        ? `Rojnishi_${document.getElementById('startDate').value}.pdf` 
-                        : `Rojnishi_${document.getElementById('startDate').value}_To_${document.getElementById('endDate').value}.pdf`;
-
-                    pdf.save(fileName);
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-
+            // ---- તારીખનું ફોર્મેટ બદલવા માટેનો નવો કોડ ----
+            function updateDateDisplay(elementId) {
+                const el = document.getElementById(elementId);
+                if (!el) return;
+                if (el.value) {
+                    const [y, m, d] = el.value.split('-');
+                    el.setAttribute('data-date', `${d}/${m}/${y}`);
                 } else {
-                    // ૨. જો પૈસા ન ભર્યા હોય તો સીધું WhatsApp વાળું મોડલ બતાવો
-                    document.getElementById("premiumModal").classList.remove("hidden");
+                    el.setAttribute('data-date', 'DD/MM/YYYY');
+                }
+            }
+
+            ['startDate', 'endDate', 'termStartDate'].forEach(id => {
+                let el = document.getElementById(id);
+                if(el) {
+                    updateDateDisplay(id); 
+                    el.addEventListener('change', () => updateDateDisplay(id)); 
                 }
             });
-        }
+        };
+
+        window.showPremiumModal = function() {
+            document.getElementById("premiumModal").classList.remove("hidden");
+        };
+        window.closePremiumModal = function() {
+            document.getElementById("premiumModal").classList.add("hidden");
+        };
+        window.sendWhatsApp = function() {
+            let myNumber = "919586311704"; 
+            let msg = "નમસ્તે પરબતભાઈ, મેં 'દૈનિક રોજનીશી' એપના પ્રીમિયમ વર્ઝન (₹૨૯૯) માટે પેમેન્ટ કર્યું છે. મારો સ્ક્રીનશોટ આ સાથે મોકલું છું.";
+            let waLink = "https://wa.me/" + myNumber + "?text=" + encodeURIComponent(msg);
+            window.open(waLink, "_blank");
+        };
+
+        // સિક્યોર PDF ડાઉનલોડ પ્રક્રિયા (પ્રાઈવેટ સ્કોપમાં)
+        (function setupPDFSecurity() {
+            // કોઈ પણ બહારની વ્યક્તિ આ ફંક્શનને કોન્સોલમાંથી રન નહીં કરી શકે
+            async function secureDownloadPDF() {
+                const btn = document.getElementById('btnPdf');
+                const originalText = btn.innerText;
+                btn.innerText = "PDF બની રહી છે... કૃપા કરીને રાહ જુઓ";
+                btn.disabled = true;
+
+                await document.fonts.ready;
+                const wrapper = document.getElementById('previewWrapper');
+                const container = document.getElementById('multiPageContainer');
+                
+                wrapper.style.overflow = 'hidden'; 
+                container.classList.remove('preview-scale');
+                document.querySelectorAll('[contenteditable="true"]').forEach(el => el.style.outline = "none");
+
+                const pages = document.querySelectorAll('.print-area');
+                const pdfWidth = 297; 
+                let pdf = null;
+
+                for (let i = 0; i < pages.length; i++) {
+                    let canvas = await html2canvas(pages[i], { scale: 1.0, useCORS: true, logging: false, backgroundColor: "#ffffff" });
+                    let imgData = canvas.toDataURL('image/jpeg', 0.6);
+                    let pdfHeight = (canvas.height * pdfWidth) / canvas.width; 
+                    let orientation = pdfWidth > pdfHeight ? 'l' : 'p';
+                    if (i === 0) pdf = new window.jspdf.jsPDF(orientation, 'mm', [pdfWidth, pdfHeight]);
+                    else pdf.addPage([pdfWidth, pdfHeight], orientation);
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                }
+
+                container.classList.add('preview-scale');
+                wrapper.style.overflowX = 'auto';
+
+                let fileName = currentMode === 'single' 
+                    ? `Rojnishi_${document.getElementById('startDate').value}.pdf` 
+                    : `Rojnishi_${document.getElementById('startDate').value}_To_${document.getElementById('endDate').value}.pdf`;
+
+                pdf.save(fileName);
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+
+            // પેજ લોડ થાય એટલે બટન સાથે સિક્યોર કનેક્શન જોડી દેવું
+            document.addEventListener('DOMContentLoaded', () => {
+                const pdfBtn = document.getElementById('btnPdf');
+                if (pdfBtn) {
+                    pdfBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // 1. ચેક કરો કે યુઝર પ્રીમિયમ છે કે નહીં
+                        if (window.currentUserData && window.currentUserData.isPaid === true) {
+                            secureDownloadPDF(); // પ્રીમિયમ હોય તો જ PDF ડાઉનલોડ થાય
+                        } else {
+                            if (window.showPremiumModal) {
+                                window.showPremiumModal(); // નહીંતર સીધું મોડલ ઓપન થાય
+                            }
+                        }
+                    });
+                }
+            });
+        })();
     </script>
 
     <!-- ફાયરબેઝ કનેક્શન અને માસ્ટર ડેટા ફેચ સ્ક્રિપ્ટ -->
@@ -695,12 +714,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
                         window.currentUserData = cloudData; 
                         
-                        // ફાયરબેઝમાંથી પ્રોફાઇલ ડેટા લેવો
                         appConfig.teacherName = cloudData.name || user.displayName || '';
                         appConfig.schoolName = cloudData.schoolName || '';
                         appConfig.address = cloudData.address || '';
                         
-                        // સેટિંગ્સ ફોર્મમાં ડેટા ભરવો
                         document.getElementById('profTeacherName').value = appConfig.teacherName;
                         document.getElementById('profSchoolName').value = appConfig.schoolName;
                         document.getElementById('profAddress').value = appConfig.address;
