@@ -49,10 +49,10 @@
         <div id="errorMsg"></div>
     </div>
 
-    <!-- માત્ર ને માત્ર Popup વાળો જ કોડ (સફેદ સ્ક્રીન રોકવા માટે) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
+        // અહીં signInWithCredential ખાસ ઉમેર્યું છે
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signInWithCredential } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDY8EyUxzOivMNzTsaHV9M8EvF48nLlYAA",
@@ -67,8 +67,6 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
-        
-        // ડાયરેક્ટ એકાઉન્ટ સિલેક્ટ કરવા માટે
         provider.setCustomParameters({ prompt: 'select_account' });
 
         const btn = document.getElementById('googleBtn');
@@ -82,29 +80,59 @@
             }
         });
 
-        // ગૂગલ લોગિન બટન ફંક્શન
+        // ------------------------------------------------------------------
+        // ૧. એન્ડ્રોઈડ એપ આ ફંક્શનને ટોકન સાથે કોલ કરશે (Native Login Success)
+        // ------------------------------------------------------------------
+        window.onNativeLoginSuccess = function(idToken) {
+            btn.style.display = 'none';
+            loadingMsg.innerText = "એપ્લિકેશનમાં લોગિન થઈ રહ્યું છે...";
+            loadingMsg.style.display = 'block';
+            errorMsg.style.display = 'none';
+
+            // નવા ફાયરબેઝ (Modular SDK) મુજબ ક્રેડેન્શિયલ બનાવો
+            const credential = GoogleAuthProvider.credential(idToken);
+            
+            // ટોકનથી લોગિન કરો
+            signInWithCredential(auth, credential).then((result) => {
+                window.location.replace("index.html");
+            }).catch((error) => {
+                console.error("Native Login Error:", error);
+                errorMsg.innerHTML = `એપ્લિકેશન લોગિન નિષ્ફળ: ${error.message}`;
+                errorMsg.style.display = 'block';
+                btn.style.display = 'flex';
+                loadingMsg.style.display = 'none';
+            });
+        };
+
+        // ------------------------------------------------------------------
+        // ૨. બટન ક્લિક વખતે ચાલતું મુખ્ય ફંક્શન (Hybrid Logic)
+        // ------------------------------------------------------------------
         window.loginWithGoogle = async function() {
             btn.style.display = 'none';
+            loadingMsg.innerText = "રાહ જુઓ, પ્રક્રિયા ચાલુ છે...";
             loadingMsg.style.display = 'block';
             errorMsg.style.display = 'none';
             
-            try {
-                // ફક્ત પોપ-અપ નો જ ઉપયોગ કરો
-                const result = await signInWithPopup(auth, provider);
-                if (result.user) {
-                    window.location.replace("index.html");
+            // ચેક કરો કે આ સાઈટ એન્ડ્રોઈડ એપ (WebView) માં ચાલી રહી છે?
+            if (window.AndroidAuth && window.AndroidAuth.nativeGoogleSignIn) {
+                // હા, એન્ડ્રોઈડ એપમાં છે! તો જાવાસ્ક્રિપ્ટ ઇન્ટરફેસ (AndroidAuth) ને કમાન્ડ આપો
+                window.AndroidAuth.nativeGoogleSignIn();
+            } else {
+                // ના, લેપટોપ અથવા સાદા બ્રાઉઝરમાં છે! તો સામાન્ય પોપ-અપ થી લોગિન કરાવો
+                try {
+                    const result = await signInWithPopup(auth, provider);
+                    if (result.user) {
+                        window.location.replace("index.html");
+                    }
+                } catch (error) {
+                    console.error("Web Login Error:", error);
+                    if (error.code !== 'auth/popup-closed-by-user') {
+                        errorMsg.innerHTML = `લોગિન નિષ્ફળ: ${error.message}`;
+                        errorMsg.style.display = 'block';
+                    }
+                    btn.style.display = 'flex';
+                    loadingMsg.style.display = 'none';
                 }
-            } catch (error) {
-                console.error("Login Error:", error);
-                
-                // જો યુઝર પોતે જ પોપ-અપ બંધ કરી દે તો મેસેજ ન બતાવવો
-                if (error.code !== 'auth/popup-closed-by-user') {
-                    errorMsg.innerHTML = `લોગિન નિષ્ફળ: ${error.message}`;
-                    errorMsg.style.display = 'block';
-                }
-                
-                btn.style.display = 'flex';
-                loadingMsg.style.display = 'none';
             }
         }
     </script>
